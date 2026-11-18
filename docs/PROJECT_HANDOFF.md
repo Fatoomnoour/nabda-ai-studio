@@ -1,6 +1,6 @@
 # NABDA AI — Canonical Project Handoff
 
-**Phase:** 0.8 Starter delivery (P01D.2 Pre-Commit Repository Sanitization, Privacy Gate & Clean Baseline Preparation) · **Version:** 0.1.6 · **Date:** 2026-11-18
+**Phase:** 0.8 Starter delivery (P01D.4 completed / P01D.5 documentation sync) · **Version:** 0.1.6 · **Date:** 2026-11-18
 
 ## Approved architecture
 
@@ -26,10 +26,10 @@ Milestone checkpoints before each frontend hardening pass and the local Week 3 P
 - ✅ Local machine toolchain & lockfile verified: Node.js `v24.17.0`, npm `11.13.0`, Git `2.55.0.windows.3`; complete `package-lock.json` (`lockfileVersion: 3`, `236,637` B) verified via `npm ci`.
 - ✅ Original leader HTML (`66b86409...`) and original official logo PNG (`e6e6c401...`, 528×166 RGBA, `8,898` bytes) preserved byte-for-byte.
 - ✅ Dark-surface logo derivative `public/brand/nabda-logo-dark.png` (`428×109` RGBA, `2,178` bytes).
-- ✅ P01D.2 engineering suite (`npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:contracts`): all exited `0`.
+- ✅ P01D engineering suite (`npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:contracts`): all exited `0`.
 - ✅ **Manual Visual Mobile Review (`v0.1.6` screenshots by Frontend Lead):** **PASS (Screenshot-Supported Manual Review)** — responsive mobile layout, NABDA logo presentation, 4-step `2×2` homepage workflow, single-line `0 / 3000` counter, balanced card proportions, localized Saudi UI, portrait `9:16` storyboard, clear disabled/unavailable video export states, and instructional-template validation error verified visually.
-- ✅ **Pre-Git Security, Sanitization & Ignore Audit:** Zero secrets, personal names, emails, or machine-specific paths in tracked candidate files; `.env.local` absent; `.env.example` tracked; `node_modules/`, `.next/`, `*.tsbuildinfo`, `next-env.d.ts`, backups, renders, and `docs/references/NABDA_Week3_Project_Reference.pdf` ignored via `.gitignore`; **39** clean source/asset/doc files ready for first staging.
-- ⚠️ Browser Automation QA & Runtime Web Vitals: **BROWSER AUTOMATION: NOT TESTED** / **Runtime Web Vitals: NOT MEASURED** (`chrome_devtools` MCP unattached; optional interactive click-through smoke confirmation requested from Project Lead, non-blocking cosmetic items deferred to `feat/frontend-core`).
+- ✅ **Pre-Git Security, Sanitization, GitHub Push & `.gitignore` Audit:** Zero secrets, personal names, personal emails, or machine-specific paths in `39` tracked files; `.env.local` absent; `.env.example` tracked; `node_modules/`, `.next/`, `*.tsbuildinfo`, `next-env.d.ts`, backups, renders, and `docs/references/NABDA_Week3_Project_Reference.pdf` ignored via `.gitignore`. Clean baseline commit `f1f6706ede970c3b5bf6f77c01839228292c0fd4` pushed to `https://github.com/NouraElsaman/nabda-ai-mvp.git` (`main` -> `origin/main`).
+- ⚠️ Browser Automation QA & Runtime Web Vitals: **BROWSER AUTOMATION: NOT TESTED** / **Runtime Web Vitals: NOT MEASURED** (`chrome_devtools` MCP unattached; optional interactive click-through smoke confirmation from Project Lead, non-blocking cosmetic items deferred to `feat/frontend-core`).
 - ℹ️ Auto-generated file notice: running `npm run dev` during P01 audit appended `<!-- BEGIN:nextjs-agent-rules -->` to `AGENTS.md`.
 
 ## Verification commands
@@ -55,13 +55,14 @@ Visit `http://localhost:3000` in Chrome to verify the P01D.0 2×2 `.pipe-step` g
 | Dark-surface logo derivative PNG | PASS | `public/brand/nabda-logo-dark.png` (428×109 RGBA, 2,178 B) |
 | Dependency install (`npm install` & `npm ci`) | PASS | Verified on Node `v24.17.0` / npm `11.13.0` |
 | Full TypeScript typecheck | PASS | `npm run typecheck` (`tsc --noEmit`) exited 0 |
-| ESLint (`npm run lint`) | PASS | `0 errors, 0 warnings` after P01D.2 updates (`EXIT 0`) |
+| ESLint (`npm run lint`) | PASS | `0 errors, 0 warnings` across P01D source updates (`EXIT 0`) |
 | Next.js production build | PASS | `npm run build` (Next.js `16.4.6` Turbopack) exited 0 |
 | Contract, P0 & P01D regression tests | PASS | `npm run test:contracts` 13/13 PASS (`EXIT 0`, static + isolated mocked `localStorage`; does NOT verify live browser DOM) |
 | Manual Visual Mobile Review (`v0.1.6`) | PASS (Manual) | Verified by Frontend Lead supplied mobile screenshots (layout, logo, 2×2 `.pipe`, counter, proportions, Arabic copy, storyboard, disabled states, template guard) |
 | Browser automation (`chrome_devtools` MCP) | NOT TESTED | `BROWSER AUTOMATION: NOT TESTED` (`DevToolsActivePort` absent on browser profile); never marked PASS |
-| Interactive mobile drawer/persistence check | NOT TESTED (Automated) | Pending optional interactive smoke confirmation from Frontend Lead if any non-visual issues occurred; non-blocking cosmetics defer to `feat/frontend-core` |
-| Pre-Git security & `.gitignore` audit | PASS | 0 secrets/names/local paths in staged candidates; `.env.local` absent; `.env.example` allowed; backups & PDF ignored; 39 files clean |
+| Interactive mobile drawer/persistence check | NOT TESTED (Automated) | Optional interactive smoke confirmation from Frontend Lead if any non-visual issues occurred; non-blocking cosmetics defer to `feat/frontend-core` |
+| Pre-Git security & `.gitignore` audit | PASS | 0 secrets/names/local paths in 39 tracked files; `.env.local` absent; `.env.example` tracked; backups & PDF ignored |
+| First GitHub baseline & `main` push | PASS | Commit `f1f6706ede970c3b5bf6f77c01839228292c0fd4` pushed to `https://github.com/NouraElsaman/nabda-ai-mvp.git` (`refs/heads/main` matches `HEAD`; unauth API HTTP `404`) |
 | Runtime Web Vitals (LCP, CLS, INP) | NOT MEASURED | Requires live Chrome DevTools / Lighthouse session on production server |
 | Genuine AI/TTS/MP4 backend | NOT IMPLEMENTED | Deferred to P02A/backend per MVP scope |
 
@@ -78,13 +79,18 @@ Visit `http://localhost:3000` in Chrome to verify the P01D.0 2×2 `.pipe-step` g
 
 ## Git & GitHub status
 
-Git repository `.git` is already present in this workspace on branch `main` (`0` commits, `0` staged files, `0` remotes configured, **39** sanitized untracked `??` files matching `.gitignore`). No commits, remotes, or pushes have been executed yet. Target branches after `main` baseline `v0.1.6`: Frontend Lead `feat/frontend-core`, Shared Contract Owner `feat/api-contract-alignment` (P02A), Backend Lead `feat/backend-integrations`.
+- **Baseline Commit:** `f1f6706ede970c3b5bf6f77c01839228292c0fd4` (`f1f6706`, `chore: establish clean NABDA frontend baseline v0.1.6`, `39` sanitized tracked files)
+- **Documentation Sync:** P01D.5 synchronizes `docs/PROJECT_HANDOFF.md`, `docs/QA_REPORT.md`, and `docs/CHANGELOG.md` onto `main`
+- **Branch & Upstream Tracking:** `main` -> `origin/main`
+- **Remote URL:** `https://github.com/NouraElsaman/nabda-ai-mvp.git` (unauthenticated GitHub REST API returned HTTP `404` confirming non-public visibility; `git ls-remote origin refs/heads/main` verified synchronized)
+- **Author Privacy:** Committed using repository-local (`--local`) GitHub noreply privacy identity (global Git settings untouched).
+- **Planned Future Branches (not created yet):** Shared Contract Owner `feat/api-contract-alignment` (**P02A** contract freeze), Frontend Lead `feat/frontend-core`, Backend Lead `feat/backend-integrations`.
 
 ## Next phase and pending approvals
 
-1. Project Lead: confirm local Git commit author identity (`user.name` / `user.email`, e.g., GitHub private `noreply` email) and approve staging the **39** audited files (`git add`).
-2. Project Lead: review staged inventory (`git status --short`, `git diff --cached --stat`) and approve baseline commit (`chore: establish clean NABDA frontend baseline v0.1.6`), then approve configuring remote `origin` (`nabda-ai-mvp` private repository) and pushing `main`.
-3. Shared PR (**P02A** on `feat/api-contract-alignment`): align and freeze `domain.ts`, `NabdaService`, and `API_CONTRACT.md` before `feat/backend-integrations` begins server API routes.
-4. Backend Lead (`feat/backend-integrations`) & Content Reviewer: execute server API / Azure TTS / Remotion media proof and approve Week 1 Saudi educational text.
+1. Project Lead: verify `Private` badge and configure `main` branch protection rules in the GitHub repository UI.
+2. Shared PR (**P02A** on `feat/api-contract-alignment` from clean `main`): align and freeze `domain.ts`, `NabdaService`, and `API_CONTRACT.md` (resolving the `5` `DRAFT` contract mismatches) before `feat/backend-integrations` begins server API implementation.
+3. Frontend Lead (`feat/frontend-core`): continue independent UI/UX refinements via Pull Request after `P02A`.
+4. Backend Lead (`feat/backend-integrations` from updated `main`) & Content Reviewer: execute server API / Azure TTS / Remotion media proof and approve Week 1 Saudi educational text.
 
 **Important:** Agent must obtain explicit human approval before initializing Git, staging/committing, adding remotes, pushing, creating/merging branches, changing main, deleting, deploying, or invoking paid APIs.

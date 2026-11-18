@@ -1,5 +1,11 @@
 # NABDA AI — Change Log
 
+## v0.1.6 — Phase 0.8 P01D.4 Completed / P01D.5 Documentation Sync (2026-11-18)
+
+- **Pre-Commit Hygiene (`README.md`):** Removed line 3 trailing whitespace and verified `git diff --cached --check` passed (`EXIT:0`) across all `39` audited files.
+- **First Baseline Commit & Push (`main`):** Created `f1f6706ede970c3b5bf6f77c01839228292c0fd4` (`chore: establish clean NABDA frontend baseline v0.1.6`) using repository-local GitHub noreply author configuration (global settings untouched), added `origin` (`https://github.com/NouraElsaman/nabda-ai-mvp.git`), confirmed unauthenticated GitHub REST API returned HTTP `404` (non-public), pushed `main` without `--force`, and verified matching remote `refs/heads/main` SHA (`f1f6706ede970c3b5bf6f77c01839228292c0fd4`).
+- **P01D.5 Final Documentation Sync:** Updated milestone headings (`P01D.4 completed / P01D.5 documentation sync`), preserved manual visual QA / `NOT TESTED` / `NOT MEASURED` / `5` `DRAFT` contract notes, and documented next-phase readiness for **P02A** (`feat/api-contract-alignment` -> `feat/frontend-core` / `feat/backend-integrations`) in `docs/PROJECT_HANDOFF.md`, `docs/QA_REPORT.md`, and `docs/CHANGELOG.md`.
+
 ## v0.1.6 — Phase 0.8 P01D.2: Pre-Commit Repository Sanitization & Privacy Gate (2026-11-18)
 
 - **Role-Based Sanitization (`AGENTS.md`, `README.md`, `src/lib/api/service.ts`, `docs/**`):** Replaced personal member names and local Windows/backup paths with standardized role identifiers (`Project Lead`, `Frontend Lead`, `Backend Lead`, `Content Reviewer`, `Shared Contract Owner`) while preserving technical contracts, ownership boundaries, and verified test results.

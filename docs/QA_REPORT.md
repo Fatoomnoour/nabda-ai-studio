@@ -2,12 +2,12 @@
 
 Status language: **PASS** = verified by executed test; **FAIL** = executed and failed; **BLOCKED** = could not execute due environment; **NOT TESTED** / **NOT MEASURED** = not attempted in live browser; **NOT IMPLEMENTED** = intentionally deferred.
 
-## P01D.2 Pre-Commit Repository Sanitization & Privacy Gate (2026-11-18)
+## P01D.4 Completed / P01D.5 Documentation Sync — GitHub Baseline Verification (2026-11-18)
 
 ### Environment & Status
 
 - Workspace: `<workspace-root>/nabda-ai-mvp` (external backups retained locally outside repository)
-- Node.js: `v24.17.0` | npm: `11.13.0` | Git: `2.55.0.windows.3` (`.git` present on branch `main`: `0` commits, `0` staged files, `0` remotes — waiting for Project Lead approval)
+- Node.js: `v24.17.0` | npm: `11.13.0` | Git: `2.55.0.windows.3` (branch `main` at baseline commit `f1f6706ede970c3b5bf6f77c01839228292c0fd4`, tracking `origin/main` at `https://github.com/NouraElsaman/nabda-ai-mvp.git`)
 
 ### Engineering, Security & Manual Visual Review Results (`v0.1.6`)
 
@@ -18,11 +18,20 @@ Status language: **PASS** = verified by executed test; **FAIL** = executed and f
 | `npm run build` | PASS | Exit 0 (`next build` Next.js `16.4.6` Turbopack static routes `/` and `/_not-found`) |
 | `npm run test:contracts` | PASS | Exit 0 — `13/13` subtests across 3 suites (`tests/starter-structure.test.mjs`, `tests/p0-stabilization.test.mjs`) |
 | Manual visual mobile review (`v0.1.6` screenshots) | PASS (Manual Visual) | Supported by Frontend Lead screenshots: responsive layout, NABDA logo, 2×2 homepage workflow, single-line counter, balanced card proportions, Saudi UI, portrait storyboard, disabled export state, instructional-template validation alert |
-| Pre-commit sanitization & `.gitignore` audit | PASS | 0 personal names, emails, secrets, or local backup paths in candidate files; `.env.local` absent; `.env.example` allowed; backups, renders, and `docs/references/NABDA_Week3_Project_Reference.pdf` ignored; **39** clean candidate files |
+| Pre-commit sanitization & `.gitignore` audit | PASS | 0 personal names, emails, secrets, or local backup paths in `39` tracked files; `.env.local` absent; `.env.example` tracked; backups, renders, and `docs/references/NABDA_Week3_Project_Reference.pdf` ignored |
 | Browser automation (`chrome_devtools` MCP) | NOT TESTED | `BROWSER AUTOMATION: NOT TESTED` — never marked PASS (`DevToolsActivePort` absent on browser profile) |
 | Interactive drawer/keyboard/persistence click-through | NOT TESTED (Automated) | Static & unit tests PASS; optional interactive confirmation from Frontend Lead (non-blocking polish defers to `feat/frontend-core`) |
 | Runtime Web Vitals (LCP, CLS, INP) / Lighthouse | NOT MEASURED | Requires live Chrome DevTools / Lighthouse session on `npm run start` |
-| AI, Supabase, TTS, MP4, GitHub push | NOT IMPLEMENTED / PENDING | Backend intentionally deferred to P02A/P02; staging, commit & GitHub push await Project Lead explicit approval |
+| First baseline commit & GitHub `main` push | PASS | Commit `f1f6706ede970c3b5bf6f77c01839228292c0fd4` pushed to `https://github.com/NouraElsaman/nabda-ai-mvp.git` (`refs/heads/main` matches `HEAD`; public API HTTP `404` non-public) |
+| AI, Supabase, TTS, MP4 backend services | NOT IMPLEMENTED | Intentionally deferred pending **P02A** (`feat/api-contract-alignment`) and `feat/backend-integrations` |
+
+---
+
+## P01D.2 Pre-Commit Repository Sanitization & Privacy Gate (2026-11-18)
+
+### Summary
+
+- Sanitized role-based ownership across source comment, `AGENTS.md`, `README.md`, and `docs/**` (`0` secrets, `0` personal names, `0` local backup paths in `39` candidate files), hardened `.gitignore` (`!.env.example` verified tracked; `docs/references/NABDA_Week3_Project_Reference.pdf` excluded locally), and removed trailing whitespace in `README.md` (`git diff --cached --check` exit `0`).
 
 ---
 
@@ -74,7 +83,7 @@ Status language: **PASS** = verified by executed test; **FAIL** = executed and f
 - **P01B (`v0.1.2`, 2026-11-17)**: Derived `nabda-logo-dark.png` (`428×109`, `2,178` B) from untouched `nabda-logo.png` (`8,898` B), fixed `9:16 · 720×1280` BiDi reversal, and localized all UI/service copy to gender-neutral Saudi White Arabic.
 - **P01A (`v0.1.1`, 2026-11-17)**: Regenerated `package-lock.json` via `npm install` + `npm ci`, fixed `react-hooks/set-state-in-effect` lint error (`0` errors, `0` warnings), and enforced field-specific and section-level validation.
 
-## Remaining human gates for GitHub baseline (`v0.1.6`)
+## Next phase gates (`P02A` -> `feat/backend-integrations` / `feat/frontend-core`)
 
-1. Confirm local Git commit author identity (`user.name` / `user.email`, e.g., GitHub private `noreply` email).
-2. Explicitly approve staging the **39** audited files (`git add`), then approve baseline commit (`chore: establish clean NABDA frontend baseline v0.1.6`), remote `origin` configuration, and `git push -u origin main`.
+1. Confirm `Private` badge and `main` branch protection rules in the GitHub repository UI (`https://github.com/NouraElsaman/nabda-ai-mvp`).
+2. Start **P02A** on `feat/api-contract-alignment` from clean `main` to align and freeze the `5` `DRAFT` API contract mismatches before branching `feat/backend-integrations` or `feat/frontend-core`.
