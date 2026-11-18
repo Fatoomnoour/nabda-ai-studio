@@ -314,8 +314,9 @@ function okIds(){return AGENTS.filter(a=>(S.res[a.id]||'').trim()).map(a=>a.id)}
 function summary(){const ok=okIds().length,n=AGENTS.length,bad=AGENTS.filter(a=>!(S.res[a.id]||'').trim());const el=$('okSummary');
  S.ready=ok>0;$('toStudio').disabled=ok===0;$('retryFailed').style.display=bad.length?'inline-flex':'none';
  el.textContent=bad.length?`نجاح جزئي: نجحت ${ok} من ${n} · تعذّر: ${bad.map(a=>a.name.replace('وكيل ','')).join('، ')}`:`نجحت كل الصيغ (${n} من ${n})`;el.style.color=bad.length?'#E8B66A':'';if(typeof renderTabs==='function'&&S.cur)renderTabs()}
-async function retryOne(id){const a=AGENTS.find(x=>x.id===id);if(!a||!S.runText)return;$('apprState').textContent='يعيد المحاولة…';AGENTS[1].ask=postsAsk();await runAgent(a,S.runText);summary();if(S.cur===id)openTab(id)}
-async function retryFailed(){const bad=AGENTS.filter(a=>!(S.res[a.id]||'').trim());if(!bad.length||!S.runText)return;$('retryFailed').disabled=true;AGENTS[1].ask=postsAsk();await Promise.all(bad.map(a=>runAgent(a,S.runText)));await runChecker(S.runText);$('retryFailed').disabled=false;summary()}
+function refreshOpen(){const id=S.cur;if(!id||id==='cmp'||!$('pkgEdit').dataset.k)return;setEd(S.res[id]||'');$('apprState').textContent=S.approved[id]?'معتمد ✓':'';renderTabs();renderStage();badge()}
+async function retryOne(id){const a=AGENTS.find(x=>x.id===id);if(!a||!S.runText)return;$('apprState').textContent='يعيد المحاولة…';AGENTS[1].ask=postsAsk();await runAgent(a,S.runText);summary();refreshOpen()}
+async function retryFailed(){const bad=AGENTS.filter(a=>!(S.res[a.id]||'').trim());if(!bad.length||!S.runText)return;$('retryFailed').disabled=true;AGENTS[1].ask=postsAsk();await Promise.all(bad.map(a=>runAgent(a,S.runText)));await runChecker(S.runText);$('retryFailed').disabled=false;summary();refreshOpen()}
 function isSampleSrc(){return $('src').value.replace(/\s+/g,'')===SAMPLE.replace(/\s+/g,'')}
 async function runChecker(text){$('checker').style.display='block';$('checkOut').textContent='يراجع اللهجة والحقائق…';
  try{const all=AGENTS.filter(a=>S.res[a.id]).map(a=>`[${a.name}]\n${S.res[a.id]}`).join('\n\n');
@@ -391,8 +392,8 @@ function exportReel(){if(!R.cv.captureStream||!window.MediaRecorder){toast('تص
 const TABS=[{id:'video',n:'🎬 الفيديو'},{id:'posts',n:'✍ المنشورات'},{id:'slides',n:'🖼 الصور'},{id:'quiz',n:'❓ الكويز'},{id:'voice',n:'🎙 الصوت'},{id:'cmp',n:'⚖ نبضة مقابل أداة عامة'}];
 const APPR=TABS.filter(t=>t.id!=='cmp');
 function renderTabs(){setTimeout(badge,0);$('pkgTabs').innerHTML=TABS.map(t=>`<button class="tab ${S.cur===t.id?'on':''}" onclick="openTab('${t.id}')">${t.n} ${S.approved[t.id]?'<span class="ck">✓</span>':(t.id!=='cmp'&&!(S.res[t.id]||'').trim()?'<span class="ck" style="color:#E8B66A">⚠</span>':'')}</button>`).join('');$('apprCount').textContent=`معتمد ${Object.keys(S.approved).length} من ${APPR.length}`}
-async function openTab(id){if($('pkgEdit').dataset.k&&S.cur!=='cmp')setRes(S.cur,$('pkgEdit').value);try{window.__nbAudio&&window.__nbAudio.pause();window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}S.cur=id;R.playing=false;try{tts&&tts.stop()}catch(e){}
- const ed=id!=='cmp';$('pkgEdit').style.display=ed?'block':'none';$('pkgEdit').value=ed?(S.res[id]||''):'';$('pkgEdit').dataset.k=id;$('sideTitle').textContent=TABS.find(t=>t.id===id).n;$('apprState').textContent=S.approved[id]?'معتمد ✓':'';renderTabs();renderFacts('factsMini');renderSrc();renderLog();
+async function openTab(id){saveEd();try{window.__nbAudio&&window.__nbAudio.pause();window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}S.cur=id;R.playing=false;try{tts&&tts.stop()}catch(e){}
+ const ed=id!=='cmp';$('pkgEdit').style.display=ed?'block':'none';setEd(ed?(S.res[id]||''):'');$('pkgEdit').dataset.k=id;$('sideTitle').textContent=TABS.find(t=>t.id===id).n;$('apprState').textContent=S.approved[id]?'معتمد ✓':'';renderTabs();renderFacts('factsMini');renderSrc();renderLog();
  try{await document.fonts.load("800 40px 'Alexandria'");await document.fonts.load("500 40px 'IBM Plex Sans Arabic'")}catch(e){}renderStage()}
 function renderStage(){const id=S.cur,st=$('stage'),t=S.res[id];
  if(id!=='cmp'&&!(t||'').trim()){st.innerHTML=`<div style="text-align:center;padding:28px"><p style="margin-bottom:12px">تعذّر توليد هذه الصيغة، ولا يمكن اعتمادها.</p><button class="btn gold sm" onclick="retryOne('${id}')">أعد المحاولة لهذه الصيغة</button></div>`;return}
@@ -410,21 +411,23 @@ function ans(b){const c=b.dataset.c==='1';b.classList.add(c?'right':'wrong');if(
 async function playVoice(){const L=lines(S.res.voice);if(tts){try{tts.onLine&&tts.onLine(({id})=>{document.querySelectorAll('#vlines p').forEach(p=>p.style.background='rgba(255,255,255,.05)');const e=$(id);e&&(e.style.background='rgba(63,209,168,.25)')});await tts.speak(L.map((t,i)=>({text:t,id:'vl'+i})));return}catch(e){}}speakLines(L)}
 function dl(cv,name){cv.toBlob(b=>saveFile(name,b),'image/png')}
 async function dlAll(){const cvs=[...document.querySelectorAll('#slGrid canvas')];for(let i=0;i<cvs.length;i++){const b=await new Promise(r=>cvs[i].toBlob(r,'image/png'));await saveFile(`nabda-slide-${i+1}.png`,b)}}
+function setEd(v){const e=$('pkgEdit');e.value=v;e.dataset.base=v}
+function saveEd(){const e=$('pkgEdit');if(e.dataset.k&&e.dataset.k!=='cmp'&&e.value!==(e.dataset.base??''))setRes(e.dataset.k,e.value)}
 function badge(){const b=document.getElementById('aiBadge');if(!b)return;const a=S.approved&&S.approved[S.cur];b.textContent=a?'● أُنتج بمساعدة الذكاء الاصطناعي · راجعه: '+a:'● مسودة مولّدة بالذكاء الاصطناعي · بانتظار المراجعة'}
 function setRes(id,v){if(id==='cmp'||v===undefined)return;if((S.res[id]||'')!==v){S.res[id]=v;if(S.approved[id]){const prev=S.approved[id];delete S.approved[id];(S.log=S.log||[]).push({k:id,who:prev,at:new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}),voided:true});renderLog&&renderLog()}}}
-document.addEventListener('DOMContentLoaded',()=>{const ed=document.getElementById('pkgEdit');if(ed)ed.addEventListener('input',()=>{const id=S.cur;if(!id||id==='cmp')return;const had=!!S.approved[id];setRes(id,ed.value);if(had){$('apprState').textContent='عُدّل المحتوى · يحتاج اعتمادًا جديدًا';renderTabs()}badge()})});
-function applyEdit(){if(S.cur==='cmp')return;setRes(S.cur,$('pkgEdit').value);$('apprState').textContent='';renderTabs();renderStage();badge()}
+document.addEventListener('DOMContentLoaded',()=>{const ed=document.getElementById('pkgEdit');if(ed)ed.addEventListener('input',()=>{const id=S.cur;if(!id||id==='cmp')return;const had=!!S.approved[id];setRes(id,ed.value);ed.dataset.base=ed.value;if(had){$('apprState').textContent='عُدّل المحتوى · يحتاج اعتمادًا جديدًا';renderTabs()}badge()})});
+function applyEdit(){if(S.cur==='cmp')return;setRes(S.cur,$('pkgEdit').value);$('pkgEdit').dataset.base=$('pkgEdit').value;$('apprState').textContent='';renderTabs();renderStage();badge()}
 function renderLog(){const L=S.log||[];$('logBox').innerHTML=L.length?L.slice().reverse().map(e=>{const n=esc(TABS.find(t=>t.id===e.k).n);return e.voided?`<div class="fact" style="opacity:.85;border-color:#8a4a4a"><span class="n" style="background:#8a4a4a;color:#fff">✕</span><span>${n} · <b>اعتماد ملغى بسبب تعديل المحتوى</b> (كان باسم ${esc(e.who)}) · ${e.at}</span></div>`:`<div class="fact"><span class="n">✓</span><span>${n} · اعتمده <b>${esc(e.who)}</b> · ${e.at}</span></div>`}).join(''):'<span class="note">لم يُعتمد شيء بعد</span>'}
 function approve(){if(S.cur==='cmp'){toast('هذه مقارنة للعرض فقط');return}if(!$('pkgEdit').value.trim()){toast('لا يمكن اعتماد مخرج فارغ. أعد توليده أولًا');return}applyEdit();const who=($('approver').value||'محرر الفريق').trim();S.approved[S.cur]=who;(S.log=S.log||[]).push({k:S.cur,who,at:new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'})});renderLog();$('apprState').textContent='معتمد ✓';renderTabs();badge();const n=APPR.find(t=>!S.approved[t.id]);if(n)setTimeout(()=>openTab(n.id),450);else toast('الحملة كلها معتمدة ✓')}
 async function redo(how){if(S.cur==='cmp')return;if(!hasAI()){toast('إعادة التوليد تحتاج اتصالًا بالذكاء الاصطناعي');return}
  const id=S.cur,a=AGENTS.find(x=>x.id===id),base=$('pkgEdit').value;$('apprState').textContent='يعيد الكتابة…';
- try{const r=await ai(ctx($('src').value)+'\n\nالمهمة: '+a.ask+'\nالنسخة الحالية:\n'+base+'\nأعد كتابتها لتكون '+how+' بنفس الصيغة.',{modelTier:'default',onText:({text:t})=>{if(S.cur===id)$('pkgEdit').value=t}});
+ try{const r=await ai(ctx($('src').value)+'\n\nالمهمة: '+a.ask+'\nالنسخة الحالية:\n'+base+'\nأعد كتابتها لتكون '+how+' بنفس الصيغة.',{modelTier:'default',onText:({text:t})=>{if(S.cur===id)setEd(t)}});
   setRes(id,r.text.trim());renderTabs();summary();
-  if(S.cur===id){$('pkgEdit').value=S.res[id];$('apprState').textContent='نسخة جديدة · تحتاج مراجعة';renderStage();badge()}else toast('اكتملت إعادة كتابة «'+TABS.find(t=>t.id===id).n+'» وتحتاج مراجعة')}
+  if(S.cur===id){setEd(S.res[id]);$('apprState').textContent='نسخة جديدة · تحتاج مراجعة';renderStage();badge()}else toast('اكتملت إعادة كتابة «'+TABS.find(t=>t.id===id).n+'» وتحتاج مراجعة')}
  catch(e){if(S.cur===id)$('apprState').textContent='تعذّر، حاول مرة أخرى'}}
 
 /* ---------- calendar ---------- */
-function toCal(){if($('pkgEdit').dataset.k&&S.cur!=='cmp')setRes(S.cur,$('pkgEdit').value);const weeks=S.mode==='scheduled'?(+$('weeks').value||5):1;const start=new Date($('startDate').value||Date.now());
+function toCal(){saveEd();const weeks=S.mode==='scheduled'?(+$('weeks').value||5):1;const start=new Date($('startDate').value||Date.now());
  const days=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس'];const slot=[['🎬 ريل','video'],['🖼 كاروسيل','slides'],['❓ كويز','quiz'],['✍ '+((S.platforms||[]).filter(p=>POST_SPEC[p]).join(' + ')||'منشورات'),'posts'],['🎙 مقطع صوتي','voice']];
  const titles=(S.plan?.parts||[]).map(p=>p.title),def=['مفهوم التناظر اللفظي','الجزء والكل والفئة','الضد والترادف والدرجة','السبب والنتيجة والوظيفة','اختبار تجريبي ومراجعة'];
  let h='<div class="h">الأسبوع</div>'+days.map(d=>`<div class="h">${d}</div>`).join('');

@@ -125,3 +125,6 @@ Requested by the Project Lead (Fatma) on branch `feat/live-studio-gemini`. Froze
 - All "try Nabda" CTAs → /studio; /login keeps the local tour as a clearly named secondary option.
 - /api/health?probe=1 now needs `Authorization: Bearer <HEALTH_PROBE_TOKEN>` and is capped at 5/hour per instance.
 - Mobile: swarm one column ≤980px, calendar as a list ≤700px, 44px touch targets, prefers-reduced-motion honoured in the studio, landing hero shortened (150vh / 130vh).
+
+## 2026-11-18 (3) — retry fix
+- Retrying a failed format (single or "retry all") no longer lets the stale empty editor overwrite the new result: programmatic loads are tracked (`setEd`/`saveEd` with a base value) so only real user edits are saved when switching tabs or opening the calendar.
