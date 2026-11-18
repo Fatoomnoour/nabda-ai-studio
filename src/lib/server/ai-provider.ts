@@ -83,8 +83,10 @@ export async function streamText(prompt: string, tier: Tier): Promise<Response> 
           contents: [{ role: "user", parts: [{ text: prompt }] }],
           generationConfig: {
             maxOutputTokens: 4096,
-            // Gemini 2.5 supports a zero thinking budget (faster); newer models use their defaults.
-            ...(model.startsWith("gemini-2.5") ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+            // Fast drafts: 2.5 takes a zero thinking budget; Gemini 3.x takes a level (3.8 Flash: low|medium|high).
+            thinkingConfig: model.startsWith("gemini-2.5")
+              ? { thinkingBudget: 0 }
+              : { thinkingLevel: process.env.GEMINI_THINKING_LEVEL || "low" },
           },
         }),
       },
