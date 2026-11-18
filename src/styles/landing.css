@@ -690,8 +690,10 @@ html { scroll-behavior: smooth; scroll-padding-top: 5.5rem; }
   color: var(--nabda-mint);
 }
 @media (max-width: 860px) {
+  .nabda-nav__bar { gap: 0.5rem; padding-inline: 0.85rem; }
+  .nabda-nav .nabda-logo { width: clamp(6.5rem, 30vw, 8.6rem); }
   .nabda-nav__prefs { margin-inline-start: auto; }
-  .nabda-nav__toggle { margin-inline-start: 0.35rem; }
+  .nabda-nav__toggle { margin-inline-start: 0.25rem; }
 }
 
 /* LTR adjustments for English mode */

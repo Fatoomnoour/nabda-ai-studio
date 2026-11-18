@@ -13,7 +13,6 @@ import {
   Clapperboard,
   FileEdit,
   FolderOpen,
-  Globe,
   Home,
   Layers3,
   Lightbulb,
@@ -63,6 +62,7 @@ export function NabdaWorkspace() {
   const WORKFLOW = isEn ? w.workflow : WORKFLOW_AR;
   const VIEW_TITLES = isEn ? w.viewTitles : VIEW_TITLES_AR;
   const ForwardArrow = isEn ? ArrowRight : ArrowLeft;
+  const BackArrow = isEn ? ArrowLeft : ArrowRight;
   const ForwardChevron = isEn ? ChevronRight : ChevronLeft;
 
   const service = useMemo(() => createNabdaService(), []);
@@ -318,7 +318,7 @@ export function NabdaWorkspace() {
             <span>{isEn ? w.nav.final : "الاعتماد والتصدير"}</span>
           </button>
           <Link href="/" className="sidebar-landing-link" onClick={() => setMobileMenu(false)}>
-            <Globe size={17} />
+            <BackArrow size={16} aria-hidden="true" />
             <span>{isEn ? w.backToLanding : "الصفحة التعريفية"}</span>
           </Link>
         </nav>
@@ -358,9 +358,7 @@ export function NabdaWorkspace() {
               href="/"
               className="header-landing-btn"
               aria-label={isEn ? w.backToLandingAria : "العودة إلى الصفحة التعريفية"}
-              title={isEn ? w.backToLandingAria : "العودة إلى الصفحة التعريفية"}
             >
-              <Globe size={15} aria-hidden="true" />
               <span>{isEn ? w.backToLanding : "الصفحة التعريفية"}</span>
             </Link>
             <PreferencesControls variant="workspace" compact />
