@@ -144,7 +144,7 @@ function textResponse(body: ReadableStream<Uint8Array>, model?: string): Respons
 /** Fast-first model order. Override with GEMINI_MODEL (and GEMINI_MODEL_QUICK). */
 export function geminiChain(tier: Tier): string[] {
   const pinned = tier === "quick" ? process.env.GEMINI_MODEL_QUICK || process.env.GEMINI_MODEL : process.env.GEMINI_MODEL;
-  const defaults = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-2.5-flash-lite", "gemini-3.8-flash"];
+  const defaults = ["gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-2.5-flash-lite"];
   return [...new Set([...(pinned ? [pinned] : []), ...defaults])];
 }
 
