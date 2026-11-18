@@ -1,5 +1,15 @@
 # NABDA AI — Change Log
 
+## v0.1.7 — Phase P02A: Shared API Contract Freeze & Pre-Backend Integration Readiness (2026-11-18)
+
+- **Branch & Backup:** Created local branch `feat/api-contract-alignment` from verified `main` (`3ce96a2`) with pre-P02A external backup stored locally outside repository.
+- **Frozen Domain Contracts (`src/lib/contracts/domain.ts`, `src/lib/utils/client.ts`):** Added `ScriptOrigin` (including `"instructional_template"`), `SaudiVoiceId`, `VideoTemplateId`, `ApiErrorCode`, `ApiErrorPayload`, `ReviseScriptInput`, `ApproveScriptInput`, `ScriptVersion.contentHash` (`sha256:<hex>` via synchronous RFC 6234 `canonicalizeScriptSections` / `computeScriptContentHash`), and `ScriptVersion.containsInstructionalPlaceholders`.
+- **Service & UI Contract Alignment (`src/lib/api/service.ts`, `src/features/script/ScriptStudio.tsx`, `src/components/NabdaWorkspace.tsx`, `src/lib/fixtures/aptitude.ts`, `src/features/review/FinalReview.tsx`, `src/app/globals.css`):**
+  - Updated `NabdaService.requestVideoRender(input: VideoStartInput): Promise<VideoJob>` with mandatory `expectedScriptHash` and explicit project/voice/template/approval/hash guards while continuing to fail closed via `IntegrationNotConfiguredError`.
+  - Enforced `baseVersionId` optimistic concurrency (`VERSION_CONFLICT`) in `reviseScript` and persisted-version `expectedContentHash` digest validation (`CONTENT_HASH_MISMATCH`) in `approveScript` via `NabdaContractError`, plus persisted hash binding in `ScriptStudio`.
+  - Distinguished `"instructional_template"` drafts (`containsInstructionalPlaceholders: true`), verified legacy `localStorage` backfill compatibility, and connected `STARTER_STYLE_RULES` as sample-only quick-fill chips in `FinalReview` (no auto-seeding or AI learning claims).
+- **Regression Suite & Documentation (`tests/p0-stabilization.test.mjs`, `docs/**`):** Expanded tests to `17/17` PASS (including independent 8-category Node `crypto` SHA-256 oracle & legacy `localStorage` hydration tests) and synchronized `API_CONTRACT.md` (`ALL ROUTES DRAFT` preserved), `BACKEND_HANDOFF.md`, `ARCHITECTURE.md`, `PROJECT_HANDOFF.md`, `QA_REPORT.md`, and `CHANGELOG.md`.
+
 ## v0.1.6 — Phase 0.8 P01D.4 Completed / P01D.5 Documentation Sync (2026-11-18)
 
 - **Pre-Commit Hygiene (`README.md`):** Removed line 3 trailing whitespace and verified `git diff --cached --check` passed (`EXIT:0`) across all `39` audited files.

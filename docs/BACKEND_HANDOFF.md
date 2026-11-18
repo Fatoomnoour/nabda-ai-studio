@@ -1,6 +1,6 @@
 # NABDA AI — Backend Integration Handoff for Backend Lead
 
-> **Contract Status:** `DRAFT — Pending P02A / feat/api-contract-alignment`. Frontend baseline `v0.1.6` implements zero live backend routes; `HttpNabdaService` fails closed.
+> **Contract Status:** Client-side TypeScript domain & service signatures **FROZEN in P02A (`v0.1.7`, branch `feat/api-contract-alignment`)**; HTTP REST endpoints in `docs/API_CONTRACT.md` remain **`ALL ROUTES DRAFT / UNIMPLEMENTED`** until implemented and smoke-tested on `feat/backend-integrations`. `HttpNabdaService` intentionally fails closed.
 
 ## Important
 
@@ -44,9 +44,23 @@ Branch on the canonical private repository (`nabda-ai-mvp`) and merge via Pull R
 
 ## Script versioning & approval semantics
 
-- `ScriptVersion` (`version: 1, 2, ...`) is strictly immutable; edits always create a new version and invalidate prior approvals (`"معتمد حاليًا"` vs `"اعتماد سابق"` vs `"غير معتمد"`).
-- Server script approvals must bind to `versionId`, `expectedContentHash` (SHA-256 digest of normalized `hook`, `body`, `cta`), and authenticated reviewer ID.
-- Empty sections or unmodified instructional template text (`isInstructionalTemplateText` in `src/lib/utils/client.ts`) are blocked at both UI (`ScriptStudio`) and `validateScriptSections` boundaries prior to save/approval.
+- `ScriptVersion` (`version: 1, 2, ...`, `origin: ScriptOrigin`) is strictly immutable and carries `contentHash` (`sha256:<64-hex>`) and `containsInstructionalPlaceholders: boolean`.
+- `reviseScript(projectId, sections, baseVersionId)` enforces optimistic concurrency: if `baseVersionId` does not match the latest stored version ID, reject with `NabdaContractError("VERSION_CONFLICT", ...)` (`HTTP 409`). Edits always create a new immutable version (`origin: "manual"`) and invalidate prior approvals (`"معتمد حاليًا"` vs `"اعتماد سابق"` vs `"غير معتمد"`).
+- `approveScript(projectId, versionId, expectedContentHash)` computes the canonical digest via `canonicalizeScriptSections` / `computeScriptContentHash` (`src/lib/utils/client.ts`), rejects stale versions (`VERSION_CONFLICT`), rejects modified/unpersisted content (`CONTENT_HASH_MISMATCH`), and records `contentHash` on `ApprovalEvent` (plus authenticated reviewer on the server).
+- Empty sections or unmodified instructional template text (`origin: "instructional_template"` / `containsInstructionalPlaceholders: true` / `isInstructionalTemplateText`) are rejected at UI, `validateScriptSections`, and service approval boundaries.
+
+## Boundary Matrix & DTO Contracts (8 Core Areas)
+
+| Boundary Area | Owner | Request / Input DTO | Response / Entity Contract | Required Error Semantics |
+|---|---|---|---|---|
+| Projects & Sources | Backend Lead (`POST/GET /projects`) | `CreateProjectInput` (`sourceText`, `mode`, `audience`, `contentType`, `dialect`, `tone`) | `Project` + immutable `SourceContent` (`draft` status) | `INVALID_INPUT` (20–3000 chars, audience >= 3), `UNAUTHORIZED`, `RATE_LIMITED` |
+| Grounding Claims & Citations | Backend Lead (`POST /scripts/generate`) | `{ useSavedPreferences, targetDurationSeconds }` | `SourceFact[]` (`quote`, `start`, `end`, `state`) + `warnings` | Enforces `sourceText.slice(start, end) === quote`; `idea` mode flagged ungrounded |
+| Script Versions | Shared Freeze (`domain.ts`, `service.ts`) | `ReviseScriptInput` (`projectId`, `baseVersionId`, `sections`) | Immutable `ScriptVersion` (`contentHash`, `origin`, `containsInstructionalPlaceholders`) | `VERSION_CONFLICT` (`409`), `INVALID_INPUT`, `NOT_FOUND` |
+| Human Approval | Shared Freeze (`service.ts`) | `ApproveScriptInput` (`projectId`, `versionId`, `expectedContentHash`) | `ApprovalEvent` (`contentHash`, `persistence: "server"`) | `VERSION_CONFLICT`, `CONTENT_HASH_MISMATCH`, `FACTS_NEED_REVIEW`, `INVALID_INPUT` |
+| Saudi Voice Selection | Backend Lead (`Azure Speech`) | `SaudiVoiceId` (`ar-SA-ZariyahNeural` / `ar-SA-HamedNeural`) | Per-scene narration durations & private audio path | `TTS_UNAVAILABLE` (`503`), `INVALID_INPUT` |
+| Asynchronous Video Jobs | Backend Lead (`POST/GET /video-jobs`) | `VideoStartInput` (**mandatory** `projectId`, `scriptVersionId`, `voiceId`, `templateId`, `expectedScriptHash`) | `VideoJob` (`not_started` -> `queued` -> `synthesizing_audio` -> `rendering` -> `ready` \| `failed`) | Require `expectedScriptHash` (`INVALID_INPUT`), latest approved `scriptVersionId` (`SCRIPT_NOT_APPROVED`), and digest match against both version & `ApprovalEvent.contentHash` (`CONTENT_HASH_MISMATCH`), `RENDER_QUOTA`, `NOT_FOUND` |
+| Final Asset Readiness | Backend Lead (`/preview`, `/approve`, `/download`) | `{ expectedAssetHash }` | `GeneratedAsset` (`kind: "video"`, `mimeType: "video/mp4"`, `sourceVersionId`) + `ApprovalEvent` (`kind: "video"`) | `VIDEO_NOT_READY` (`409`), `VERSION_CONFLICT` (`409`), `FORBIDDEN` (`403`) |
+| Editorial Preferences | Backend Lead (`/style-preferences`) | `rule` (`>= 8` chars, `origin`) | `StylePreference[]`; offline UI quick-fill uses `STARTER_STYLE_RULES` fixture only | Explicit user rule approval only; never promote unverified facts or claim AI auto-learning |
 
 ## Video job lifecycle (`ALL ROUTES DRAFT`)
 
@@ -87,15 +101,22 @@ SUPABASE_SERVICE_ROLE_KEY=
 - Replace throwing stubs inside `HttpNabdaService` incrementally with typed `fetch` requests against `/api/v1/**` when `NEXT_PUBLIC_NABDA_ADAPTER=http`.
 - Never silently switch `HttpNabdaService` back to `aptitude.ts` fixtures on API error.
 
-## Known contract inconsistencies (`DRAFT — Pending P02A / feat/api-contract-alignment`)
+## Resolved P02A Contract Alignments (`v0.1.7` on `feat/api-contract-alignment`)
 
-Do not silently freeze inconsistent signatures. Align these items explicitly in **P02A** on `feat/api-contract-alignment` before backend route implementation:
+All five prior contract inconsistencies from `v0.1.6` are resolved at the shared TypeScript & local adapter boundary (HTTP server endpoints remain `DRAFT` until `feat/backend-integrations`):
 
-1. **`requestVideoRender()` signature mismatch:** `NabdaService.requestVideoRender()` (`src/lib/api/service.ts`) takes `0` arguments, whereas `VideoStartInput` in `src/lib/contracts/domain.ts` defines `{ projectId, scriptVersionId, voiceId }` and `POST /api/v1/projects/{projectId}/video-jobs` in `docs/API_CONTRACT.md` expects `{ scriptVersionId, voiceId, templateId }`.
-2. **Optimistic locking on `reviseScript`:** `NabdaService.reviseScript(projectId: string, sections: ScriptSections)` currently omits `baseVersionId` required by `POST /api/v1/projects/{projectId}/scripts/revisions` (`409 VERSION_CONFLICT`).
-3. **Content hash binding on `approveScript`:** `NabdaService.approveScript(projectId: string, versionId: string)` currently omits `expectedContentHash` required by `POST /api/v1/projects/{projectId}/scripts/{versionId}/approve`.
-4. **Unused style-rule fixture constant:** `STARTER_STYLE_RULES` is exported from `src/lib/fixtures/aptitude.ts` but is not currently seeded by `LocalDevelopmentService`.
-5. **Custom-source `prepareDraft` placeholder text:** `LocalDevelopmentService.prepareDraft` currently initializes custom-source `hook` and `cta` fields with instructional guide strings; `validateScriptSections` blocks approval until manually edited, whereas `/scripts/generate` on the server must return real AI-generated sections + `warnings` / `facts`.
+1. **Video rendering aligned with `VideoStartInput`:** `NabdaService.requestVideoRender(input: VideoStartInput): Promise<VideoJob>` now requires `{ projectId, scriptVersionId, voiceId, templateId, expectedScriptHash }` (with **`expectedScriptHash` mandatory**), validates project existence, latest approved script version, non-instructional content, and persisted script/approval hash equality, and continues failing closed via `IntegrationNotConfiguredError`.
+2. **Optimistic concurrency on `reviseScript`:** `NabdaService.reviseScript(projectId, sections, baseVersionId)` and `ReviseScriptInput` require `baseVersionId` and throw `NabdaContractError("VERSION_CONFLICT", ...)` on stale edits while preserving immutable history.
+3. **Canonical hash binding on `approveScript`:** `NabdaService.approveScript(projectId, versionId, expectedContentHash)` and `ApproveScriptInput` validate `sha256:<hex>` digests computed by `canonicalizeScriptSections` / `computeScriptContentHash` (`CONTENT_HASH_MISMATCH` if modified) and store `contentHash` on `ApprovalEvent`.
+4. **Editorial fixture scoping (`STARTER_STYLE_RULES`):** Retained as sample-only quick-fill suggestions in `FinalReview.tsx` (`نموذج مقترح للتجربة المحلية`), with zero auto-seeding into `localStorage` and zero AI fine-tuning claims.
+5. **Instructional placeholder provenance:** Custom-source offline drafts carry `origin: "instructional_template"` and `containsInstructionalPlaceholders: true`, cleanly distinguishing unedited local templates from `"manual"`, `"development_fixture"`, and future `"ai"` versions.
+
+## Recommended Future Phase Sequence (Do NOT Start Without Approval)
+
+- `feat/frontend-core`: frontend-only UX refinements, drawer/keyboard verification, and optional polish on merged contracts.
+- Isolated Lovable UX experiment (separate sanitized export only — never linked to canonical GitHub).
+- Vercel frontend preview readiness (`NEXT_PUBLIC_NABDA_ADAPTER=development`, zero server secrets or billing).
+- `feat/backend-integrations`: Supabase schema/RLS, Gemini grounding, Azure Saudi TTS, Remotion MP4 worker, and real `HttpNabdaService`.
 
 ## Security & proof gates
 
@@ -107,6 +128,6 @@ Server-only secrets, authenticated session enforcement + Supabase RLS, payload/l
 - `POST /api/v1/projects` persists source; `GET` survives restart.
 - AI output schema and verbatim source offsets validated.
 - Local UI switches cleanly to `HttpNabdaService` without fixture fallback.
-- Unauthorized requests cannot create/download; stale script/video approvals rejected (`409`).
+- Unauthorized requests cannot create/download; stale `baseVersionId` (`VERSION_CONFLICT`), wrong `expectedContentHash` (`CONTENT_HASH_MISMATCH`), or unapproved script render attempts (`SCRIPT_NOT_APPROVED`) are rejected with `409` / `NabdaContractError`.
 - Persisted `video_jobs` states reflected accurately; real MP4 preview, final human approval, authorized download.
-- Existing Frontend Lead UI compiles cleanly with only controlled adapter/state integration.
+- Existing Frontend Lead UI compiles cleanly with only controlled adapter/state integration (`HttpNabdaService` + `NEXT_PUBLIC_NABDA_ADAPTER=http`).

@@ -14,6 +14,7 @@ import {
   VideoOff,
 } from "lucide-react";
 import type { Project, StylePreference } from "@/lib/contracts/domain";
+import { STARTER_STYLE_RULES } from "@/lib/fixtures/aptitude";
 import { getVersionApprovalLabel } from "@/lib/utils/client";
 
 interface Props {
@@ -167,6 +168,21 @@ export function FinalReview({ project, preferences, onAddPreference, onTogglePre
                   <Plus size={17} />
                   <span>إضافة القاعدة</span>
                 </button>
+              </div>
+              <div className="sample-rules" aria-label="نموذج مقترح للتجربة المحلية">
+                <small>نموذج مقترح للتجربة المحلية (اضغط لتعبئة الحقل فقط):</small>
+                <div className="sample-rules-chips">
+                  {STARTER_STYLE_RULES.map(sample => (
+                    <button
+                      key={sample}
+                      type="button"
+                      className="sample-rule-chip"
+                      onClick={() => setRule(sample)}
+                    >
+                      {sample}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

@@ -153,11 +153,11 @@ export function NabdaWorkspace() {
     }
   }
 
-  async function saveScript(sections: ScriptSections) {
+  async function saveScript(sections: ScriptSections, baseVersionId: string) {
     if (!project) return;
     setBusy(true);
     try {
-      const updated = await service.reviseScript(project.id, sections);
+      const updated = await service.reviseScript(project.id, sections, baseVersionId);
       setProject(updated);
       await refresh(updated.id);
       notify("تم حفظ نسخة جديدة من السكريبت — الاعتماد السابق لا يشمل هذه النسخة.");
@@ -168,11 +168,11 @@ export function NabdaWorkspace() {
     }
   }
 
-  async function approveScript(versionId: string) {
+  async function approveScript(versionId: string, expectedContentHash: string) {
     if (!project) return;
     setBusy(true);
     try {
-      const updated = await service.approveScript(project.id, versionId);
+      const updated = await service.approveScript(project.id, versionId, expectedContentHash);
       setProject(updated);
       await refresh(updated.id);
       notify("تم تسجيل الاعتماد المحلي لهذه النسخة.");
@@ -278,7 +278,7 @@ export function NabdaWorkspace() {
               <span dir="ltr">Saudi MIB 2027 · Track 02</span>
               <small className="sidebar-status-line">
                 <span className="live-dot" />
-                <span>نسخة التطوير المحلية · <bdi dir="ltr">v0.1.6</bdi></span>
+                <span>نسخة التطوير المحلية · <bdi dir="ltr">v0.1.7</bdi></span>
               </small>
             </div>
           </div>
@@ -508,7 +508,15 @@ export function NabdaWorkspace() {
               onFinal={() => navigate("final")}
               onTryRender={async () => {
                 try {
-                  await service.requestVideoRender();
+                  const latestScript = project.scripts.at(-1);
+                  if (!latestScript) return;
+                  await service.requestVideoRender({
+                    projectId: project.id,
+                    scriptVersionId: latestScript.id,
+                    voiceId: "ar-SA-ZariyahNeural",
+                    templateId: "nabda-educational-v1",
+                    expectedScriptHash: latestScript.contentHash,
+                  });
                 } catch (e) {
                   notify(e instanceof Error ? e.message : "توليد الفيديو الفعلي غير متاح حاليًا.");
                 }
@@ -530,7 +538,7 @@ export function NabdaWorkspace() {
           )}
 
           <footer className="main-footer">
-            <span><bdi dir="ltr">© 2026 NABDA AI</bdi> · نسخة التطوير <bdi dir="ltr">v0.1.6</bdi></span>
+            <span><bdi dir="ltr">© 2026 NABDA AI</bdi> · نسخة التطوير <bdi dir="ltr">v0.1.7</bdi></span>
             <span>Saudi MIB 2027 <span className="footer-dot">·</span> واجهة تطوير محلية — ليست خدمة إنتاج منشورة</span>
           </footer>
         </div>

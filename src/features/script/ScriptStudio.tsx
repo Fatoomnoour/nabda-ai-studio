@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { Project, ScriptSections, SourceFact } from "@/lib/contracts/domain";
 import {
+  computeScriptContentHash,
   formatArabicDate,
   getScriptText,
   getVersionApprovalLabel,
@@ -25,8 +26,8 @@ import {
 interface Props {
   project: Project;
   saving: boolean;
-  onSave: (sections: ScriptSections) => Promise<void>;
-  onApprove: (versionId: string) => Promise<void>;
+  onSave: (sections: ScriptSections, baseVersionId: string) => Promise<void>;
+  onApprove: (versionId: string, expectedContentHash: string) => Promise<void>;
   onContinue: () => void;
 }
 
@@ -98,19 +99,33 @@ export function ScriptStudio({ project, saving, onSave, onApprove, onContinue }:
     }
   }, [activeFact]);
 
+  const wordCount = useMemo(() => getScriptText(sections).trim().split(/\s+/).filter(Boolean).length, [sections]);
+  const persistedContentHash = useMemo(
+    () => (current ? computeScriptContentHash(current.sections) : ""),
+    [current],
+  );
+  const draftContentHash = useMemo(() => computeScriptContentHash(sections), [sections]);
+
   const sectionError = validateScriptSections(sections);
   const dirty = !!current && getScriptText(sections) !== getScriptText(current.sections);
   const approved = !!current && getVersionApprovalLabel(project, current.id) === "معتمد حاليًا";
   const canSave = dirty && !sectionError && !saving;
-  const canApprove = !dirty && !approved && !!current && !sectionError;
+  const canApprove =
+    !dirty &&
+    !!current &&
+    !!persistedContentHash &&
+    draftContentHash === persistedContentHash &&
+    !approved &&
+    !sectionError;
   const origin =
     current?.origin === "development_fixture"
       ? "مثال معياري ثابت"
-      : current?.origin === "manual"
-        ? "صياغة يدوية محلية"
-        : "توليد بالذكاء الاصطناعي";
+      : current?.origin === "instructional_template"
+        ? "قالب إرشادي أولي"
+        : current?.origin === "manual"
+          ? "صياغة يدوية محلية"
+          : "توليد بالذكاء الاصطناعي";
   const previous = project.scripts.length > 1 ? project.scripts.at(-2) : null;
-  const wordCount = useMemo(() => getScriptText(sections).trim().split(/\s+/).filter(Boolean).length, [sections]);
 
   if (!current) return null;
 
@@ -234,7 +249,7 @@ export function ScriptStudio({ project, saving, onSave, onApprove, onContinue }:
                 <Undo2 size={16} />
                 <span>تراجع عن التعديلات</span>
               </button>
-              <button type="button" className="secondary-btn" onClick={() => onSave(sections)} disabled={!canSave}>
+              <button type="button" className="secondary-btn" onClick={() => onSave(sections, current.id)} disabled={!canSave}>
                 <Save size={16} />
                 <span>{saving ? "جارٍ الحفظ…" : "حفظ كنسخة جديدة"}</span>
               </button>
@@ -422,7 +437,7 @@ export function ScriptStudio({ project, saving, onSave, onApprove, onContinue }:
                 className="primary-btn"
                 onClick={async () => {
                   setConfirmOpen(false);
-                  await onApprove(current.id);
+                  await onApprove(current.id, persistedContentHash);
                 }}
               >
                 تأكيد الاعتماد المحلي

@@ -42,11 +42,12 @@ The `HttpNabdaService` is **fail-closed**, not a functioning API. It intentional
 
 - `src/components/NabdaWorkspace.tsx`: navigation, UI state, interactions, and service adapter orchestration.
 - `src/features/content/`: source/idea input, audience, content type, dialect, tone, input validation.
-- `src/features/script/`: three editable script sections, exact-source quotation highlighting, local approval, revisions, comparison.
-- `src/features/video/`: **static illustrative scene** and honest pending-render status; never pretends a video was rendered.
-- `src/features/review/`: export disabled without real approved asset; caption fixture and local preference editor.
-- `src/lib/contracts/domain.ts`: stable domain types.
-- `src/lib/api/service.ts`: swap local demo adapter for server API adapter without rewriting components.
+- `src/features/script/`: three editable script sections, exact-source quotation highlighting, `baseVersionId` revision concurrency, SHA-256 content-hash binding, local approval, revisions, comparison.
+- `src/features/video/`: **static illustrative scene** and honest disabled-render/pending status (`requestVideoRender(VideoStartInput)` fails closed); never pretends a video was rendered.
+- `src/features/review/`: export disabled without real approved asset; caption fixture, manual local preference editor, and sample-only `STARTER_STYLE_RULES` quick-fill chips.
+- `src/lib/contracts/domain.ts`: frozen P02A domain types (`ScriptOrigin`, `ApiErrorCode`, `ScriptVersion.contentHash`, `containsInstructionalPlaceholders`, `ReviseScriptInput`, `ApproveScriptInput`, `VideoStartInput`).
+- `src/lib/api/service.ts`: aligned `NabdaService` interface (`LocalDevelopmentService` & fail-closed `HttpNabdaService`) for clean backend swap without rewriting UI components.
+- `src/lib/utils/client.ts`: validation rules, `canonicalizeScriptSections`, synchronous RFC 6234 `computeScriptContentHash` (`sha256:<64-hex>`), and `isInstructionalTemplateText` guards.
 - `src/lib/fixtures/`: explicitly labeled, first-week aptitude development sample.
 
 ## 5. Server and database ownership (future)
