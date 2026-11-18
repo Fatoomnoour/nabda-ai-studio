@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, BookOpenText, Code2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpenText, Code2, Linkedin, Sparkles } from "lucide-react";
 import { PreferencesControls } from "@/components/PreferencesControls";
 import { usePreferences } from "@/components/PreferencesProvider";
 import { LANDING_EN, TEAM_COPY } from "@/lib/i18n/translations";
@@ -11,6 +11,12 @@ const MEMBER_ICONS = {
   fatima: BookOpenText,
   osama: Code2,
   noura: Sparkles,
+} as const;
+
+const MEMBER_LINKEDIN = {
+  fatima: "https://www.linkedin.com/in/fatma-nour-ai-trainer",
+  osama: "https://www.linkedin.com/in/usama-rabie",
+  noura: "https://www.linkedin.com/in/noura-elsaman",
 } as const;
 
 export function TeamPage() {
@@ -86,6 +92,16 @@ export function TeamPage() {
                     <h2 className="lp-team-card__name">{member.name}</h2>
                     <p className="lp-team-card__role">{member.role}</p>
                     <p className="lp-team-card__bio">{member.bio}</p>
+                    <a
+                      className="lp-team-card__link"
+                      href={MEMBER_LINKEDIN[member.id]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${member.name} — LinkedIn`}
+                    >
+                      <Linkedin size={16} aria-hidden="true" />
+                      <span>LinkedIn</span>
+                    </a>
                   </li>
                 );
               })}
