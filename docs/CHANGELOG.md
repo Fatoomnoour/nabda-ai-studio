@@ -1,5 +1,14 @@
 # NABDA AI — Change Log
 
+## v0.1.7 — Phase P02A.2 / P02B.0: Contract PR Merge, `main` Sync & `feat/frontend-core` UX Handoff (2026-11-18)
+
+- **P02A PR #1 Merged to `main`:** Created and merged PR #1 (`https://github.com/NouraElsaman/nabda-ai-mvp/pull/1`, `feat/api-contract-alignment` `e1184d2` → `main`) via regular merge commit `bc932b73630b1599e29a68f99cda9467d2c7032a` after verifying all `15` changed files, `typecheck`, `lint`, `build`, `17/17` contract tests, and protected asset SHA-256 hashes.
+- **Canonical `main` Synced & Re-Verified:** Fast-forwarded local `main` to `origin/main` (`bc932b73630b1599e29a68f99cda9467d2c7032a`) and re-ran `npm run typecheck`, `npm run lint`, `npm run build`, and `npm run test:contracts` (`17/17` PASS).
+- **Frontend UX Branch & Controlled Collaboration Policy (`feat/frontend-core`):**
+  - Created `feat/frontend-core` directly from merged `main` (`bc932b7`).
+  - Documented the three-mode Lovable collaboration policy in `AGENTS.md`, `README.md`, `docs/BACKEND_HANDOFF.md`, `docs/PROJECT_HANDOFF.md`, and `docs/QA_REPORT.md` along with the empirical GitHub branch protection check (`protected: false`; `HTTP 403` on private free-plan protection/rulesets API).
+  - Created `docs/FRONTEND_UX_HANDOFF.md` defining allowed frontend files, protected contract/backend/brand files, Saudi White Arabic + RTL rules, `UX-01`–`UX-04` priorities, GitHub write capability test prerequisites, PR review workflow, and Vercel frontend-only preview requirements.
+
 ## v0.1.7 — Phase P02A: Shared API Contract Freeze & Pre-Backend Integration Readiness (2026-11-18)
 
 - **Branch & Backup:** Created local branch `feat/api-contract-alignment` from verified `main` (`3ce96a2`) with pre-P02A external backup stored locally outside repository.

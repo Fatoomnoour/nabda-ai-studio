@@ -1,6 +1,6 @@
 # NABDA AI — Canonical Project Handoff
 
-**Phase:** P02A (Shared API Contract Freeze & Pre-Backend Integration Readiness on local `feat/api-contract-alignment`) · **Version:** 0.1.7 · **Date:** 2026-11-18
+**Phase:** P02A.2 / P02B.0 (P02A Contracts Merged to `main` via PR #1; `feat/frontend-core` & Controlled Lovable Collaboration Prepared) · **Version:** 0.1.7 · **Date:** 2026-11-18
 
 ## Approved architecture
 
@@ -29,7 +29,7 @@ Milestone checkpoints before each frontend hardening pass and the local Week 3 P
 - ✅ Dark-surface logo derivative `public/brand/nabda-logo-dark.png` (`428×109` RGBA, `2,178` bytes).
 - ✅ P02A engineering suite (`npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:contracts`): all exited `0`.
 - ✅ **Manual Visual Mobile Review (`v0.1.6` screenshots by Frontend Lead):** **PASS (Screenshot-Supported Manual Review)** — responsive mobile layout, NABDA logo presentation, 4-step `2×2` homepage workflow, single-line `0 / 3000` counter, balanced card proportions, localized Saudi UI, portrait `9:16` storyboard, clear disabled/unavailable video export states, and instructional-template validation error verified visually.
-- ✅ **Pre-Git Security, Sanitization, GitHub `main` Baseline & P02A Contract Freeze:** Zero secrets/names/emails/machine paths; `.env.local` absent; `.env.example` tracked; clean `main` baseline at commit `f1f6706` + `3ce96a2` pushed to `https://github.com/NouraElsaman/nabda-ai-mvp.git`; P02A aligned domain & service contracts prepared on `feat/api-contract-alignment` (`v0.1.7`) for Pull Request review into `main`.
+- ✅ **Pre-Git Security, Sanitization, GitHub `main` Baseline & P02A PR Merge:** Zero secrets/names/emails/machine paths; `.env.local` absent; `.env.example` tracked; initial baseline commits `f1f6706` / `3ce96a2` pushed to `https://github.com/NouraElsaman/nabda-ai-mvp.git`; P02A (`v0.1.7`, `e1184d2`) reviewed and **merged into `main` via PR #1** (`bc932b73630b1599e29a68f99cda9467d2c7032a`); `main` synced & re-verified (`4/4` checks PASS); `feat/frontend-core` branched from `bc932b7` with `docs/FRONTEND_UX_HANDOFF.md`.
 - ⚠️ Browser Automation QA & Runtime Web Vitals: **BROWSER AUTOMATION: NOT TESTED** / **Runtime Web Vitals: NOT MEASURED** (`chrome_devtools` MCP unattached; optional interactive click-through smoke confirmation from Project Lead, non-blocking cosmetic items deferred to `feat/frontend-core`).
 - ℹ️ Auto-generated file notice: running `npm run dev` during P01 audit appended `<!-- BEGIN:nextjs-agent-rules -->` to `AGENTS.md`.
 
@@ -73,22 +73,25 @@ Visit `http://localhost:3000` in Chrome to verify the P01D.0 2×2 `.pipe-step` g
 - Browser `localStorage` is demonstrative; not a secure backend and not synchronized between devices. Existing browser drafts created prior to `v0.1.6` with unmodified instructional Hook/CTA text are preserved in `localStorage` (not deleted), safely guarded in `VideoStudio`, and blocked from approval in `ScriptStudio`/`service` until replaced.
 - Source highlighting only generated for the exact original sample quote spans (`aptitude.ts` fixture).
 - Real source checking, Saudi model voice, MP4 render, backend approvals and media export remain `NOT IMPLEMENTED` (`HttpNabdaService` fails closed).
-- All five TypeScript/service contract inconsistencies identified before P02A are **resolved in `domain.ts`, `client.ts`, `service.ts`, and UI callers on `feat/api-contract-alignment`**, while REST routes `/api/v1/**` in `docs/API_CONTRACT.md` remain `ALL ROUTES DRAFT` pending `feat/backend-integrations` (plus future server concerns: request `Idempotency-Key`, authenticated `session`/RLS enforcement, and fact-warning acknowledgment `FACTS_NEED_REVIEW`).
+- All five TypeScript/service contract inconsistencies identified before P02A are **resolved and merged into `main`** (`domain.ts`, `client.ts`, `service.ts`, UI callers, `17/17` contract tests), while REST routes `/api/v1/**` in `docs/API_CONTRACT.md` remain `ALL ROUTES DRAFT` pending `feat/backend-integrations` (plus future server concerns: request `Idempotency-Key`, authenticated `session`/RLS enforcement, and fact-warning acknowledgment `FACTS_NEED_REVIEW`).
 - Font CSS uses Google Fonts `@import` in `src/app/globals.css` (system fallbacks apply offline).
 - `next dev` appended `<!-- BEGIN:nextjs-agent-rules -->` to `AGENTS.md`.
-- Lovable isolation rule: Never connect Lovable or external auto-write tools to canonical `nabda-ai-mvp`. Any future Lovable UX design experiment must use a separate sanitized export. Vercel frontend previews (if authorized later) should use `NEXT_PUBLIC_NABDA_ADAPTER=development` with zero server secrets.
+- **Controlled Lovable Collaboration & Branch Protection Finding:** Lovable's GitHub API Connector is **verified for READ-ONLY inspection** of the private `nabda-ai-mvp` repository (`READ-ONLY UX PLANNING READY`). Direct external writes and automatic Git Sync replacement remain disallowed on `main`; additionally, live GitHub REST API inspection showed `branches/main` `protected: false` and `HTTP 403` (`Upgrade to GitHub Pro or make this repository public to enable this feature`) on `/branches/main/protection` and `/rules/branches/main`. Because natural-language prompts cannot restrict a write-scoped GitHub token when server-enforced branch protection is unavailable, conditional feature-branch write testing is deferred until enforceable protection exists, and approved changes should follow: **Lovable UX proposals → Antigravity-controlled patch on `feat/frontend-core` → Tests → PR → Human approval**. See `docs/FRONTEND_UX_HANDOFF.md`.
 
 ## Git & GitHub status
 
-- **Remote `main` Baseline:** `3ce96a22c947d5c616a7e7ddfe7d9b4a462daa43` (on top of initial commit `f1f6706ede970c3b5bf6f77c01839228292c0fd4`) at `https://github.com/NouraElsaman/nabda-ai-mvp.git` (`PRIVATE`, verified HTTP `404` on unauthenticated API).
-- **Current Feature Branch:** `feat/api-contract-alignment` (**P02A / P02A.1** shared contract freeze `v0.1.7` targeting Pull Request to `main`).
+- **Repository:** `https://github.com/NouraElsaman/nabda-ai-mvp.git` (`PRIVATE`, confirmed `private: true`, unauthenticated API `HTTP 404`).
+- **Merged Contract PR:** PR #1 (`https://github.com/NouraElsaman/nabda-ai-mvp/pull/1`, `feat/api-contract-alignment` → `main`) — `MERGED` at commit `bc932b73630b1599e29a68f99cda9467d2c7032a`.
+- **Canonical `main` Baseline:** `bc932b73630b1599e29a68f99cda9467d2c7032a` (local & `origin/main` synchronized; re-validated with `typecheck`, `lint`, `build`, `17/17` `test:contracts`).
+- **Historical Contract Branch (preserved):** `feat/api-contract-alignment` at `e1184d2f5e9222e42461e6227d6c527e132c388e`.
+- **Active Frontend UX Branch:** `feat/frontend-core` branched directly from merged `main` (`bc932b7`), holding controlled Lovable UX handoff & collaboration policy updates.
+- **Planned Backend Branch (ready to start from merged `main`):** `feat/backend-integrations` (Backend Lead).
 - **Author Privacy:** Repository-local (`--local`) GitHub noreply privacy identity configured.
-- **Planned Future Branches (not created yet):** `feat/frontend-core` (Frontend Lead UX polish) and `feat/backend-integrations` (Backend Lead after `feat/api-contract-alignment` PR merges into `main`).
 
 ## Next phase and pending approvals
 
-1. Project Lead: review and approve merging the Pull Request (`feat/api-contract-alignment` -> `main`) on GitHub without auto-merging before human review.
-2. After `P02A` PR merges into `main`: Backend Lead branches `feat/backend-integrations` from updated `main` to implement Supabase/Gemini/Azure/Remotion endpoints, while Frontend Lead branches `feat/frontend-core` for UX refinements (and optional isolated Lovable / Vercel development preview if separately approved).
+1. Frontend Lead + Lovable (read-only analysis + AG-controlled patches on `feat/frontend-core`): execute prioritized UX refinements `UX-01`–`UX-04` per `docs/FRONTEND_UX_HANDOFF.md`, verify `npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:contracts`, and open PR to `main` after human review.
+2. Backend Lead: branch `feat/backend-integrations` from updated `main` (`bc932b7`) to implement Supabase/Gemini/Azure/Remotion endpoints per `docs/BACKEND_HANDOFF.md` and `docs/API_CONTRACT.md`.
 3. Content Reviewer: approve Week 1 Saudi educational source material and dialect evaluation criteria.
 
 **Important:** Agent must obtain explicit human approval before initializing Git, staging/committing, adding remotes, pushing, creating/merging branches, changing main, deleting, deploying, or invoking paid APIs.

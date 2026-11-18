@@ -1,29 +1,34 @@
 # NABDA AI — Backend Integration Handoff for Backend Lead
 
-> **Contract Status:** Client-side TypeScript domain & service signatures **FROZEN in P02A (`v0.1.7`, branch `feat/api-contract-alignment`)**; HTTP REST endpoints in `docs/API_CONTRACT.md` remain **`ALL ROUTES DRAFT / UNIMPLEMENTED`** until implemented and smoke-tested on `feat/backend-integrations`. `HttpNabdaService` intentionally fails closed.
+> **Contract Status:** P02A shared TypeScript domain & service contracts **MERGED into `main`** (`v0.1.7`, PR #1 `https://github.com/NouraElsaman/nabda-ai-mvp/pull/1`, merge commit `bc932b73630b1599e29a68f99cda9467d2c7032a`); HTTP REST endpoints in `docs/API_CONTRACT.md` remain **`ALL ROUTES DRAFT / UNIMPLEMENTED`** until implemented and smoke-tested on `feat/backend-integrations`. `HttpNabdaService` intentionally fails closed.
 
 ## Important
 
-This repository (`nabda-ai-mvp`, baseline `v0.1.6`) is a **verified Next.js 16 App Router frontend starter**, not a functional AI/TTS/video backend. Do not rewrite the Next.js frontend or start a second application. Read `AGENTS.md`, `docs/ARCHITECTURE.md`, and `docs/API_CONTRACT.md` before making changes.
+This repository (`nabda-ai-mvp`, current `main` baseline `v0.1.7`) is a **verified Next.js 16 App Router frontend starter** with frozen P02A contracts, not a functional AI/TTS/video backend. Do not rewrite the Next.js frontend or start a second application. Read `AGENTS.md`, `docs/ARCHITECTURE.md`, and `docs/API_CONTRACT.md` before making changes.
 
 ## Start safely & team branch sequence
 
-Recommended collaboration sequence from published `main` (`v0.1.6`):
+Current collaboration status from synchronized `main` (`v0.1.7`, `bc932b7`):
 
-1. Publish verified `main` baseline (`v0.1.6`).
-2. Align and freeze shared TypeScript & REST contracts on `feat/api-contract-alignment` (**P02A**, Shared Contract Owner PR).
-3. Merge reviewed contracts into `main`.
-4. Backend Lead creates `feat/backend-integrations` from updated `main`.
-5. Frontend Lead continues UX polish independently on `feat/frontend-core`.
+1. Clean `main` baseline published (`v0.1.6`, `f1f6706` / `3ce96a2`).
+2. Shared TypeScript & REST contract freeze aligned on `feat/api-contract-alignment` (**P02A**, `e1184d2`) and **merged into `main` via PR #1** (`bc932b7`).
+3. `feat/frontend-core` created from updated `main` (`bc932b7`) for UX polish (`docs/FRONTEND_UX_HANDOFF.md`).
+4. Backend Lead branches `feat/backend-integrations` directly from updated `main` (`bc932b7`).
 
 ```powershell
-git clone https://github.com/OWNER/nabda-ai-mvp.git
+git clone https://github.com/NouraElsaman/nabda-ai-mvp.git
 cd nabda-ai-mvp
 npm ci
 git switch -c feat/backend-integrations
 ```
 
-Branch on the canonical private repository (`nabda-ai-mvp`) and merge via Pull Requests. Keep `main` protected from unreviewed direct feature pushes. Never connect Lovable or third-party automated write access to this canonical repository.
+Branch on the canonical private repository (`nabda-ai-mvp`) and merge via Pull Requests only.
+
+### Controlled Lovable Collaboration Policy (3 Modes)
+
+1. **Mode 1 — GitHub API Read-Only Code Analysis (`VERIFIED & ALLOWED`):** Reading the existing Next.js 16 repository to propose UI/UX refinements for `feat/frontend-core`.
+2. **Mode 2 — Conditional Feature-Branch Write Test (`CONDITIONAL — CURRENTLY UNSAFE/BLOCKED WITHOUT PLAN UPGRADE`):** Direct external write tests are limited strictly to `feat/frontend-core` (never `main`) ONLY when enforceable GitHub branch protection / rulesets prevent direct pushes to `main`. Verified API state (`branches/main` `protected: false`; protection & rulesets endpoints return `HTTP 403` on the current private GitHub Free plan) means natural-language prompt rules alone cannot constrain a write-scoped GitHub token. Therefore, route UX changes via: **Lovable UX proposals → AG-controlled patch on `feat/frontend-core` → Local checks → PR → Human approval**.
+3. **Mode 3 — Standalone App-Building & Git Sync Replacement (`FORBIDDEN`):** Never allow Lovable automatic Git Sync repository replacement, second-app scaffolding, framework migration (Next.js → Vite/TanStack Start), or edits to backend/frozen-contract files.
 
 ## File ownership & integration boundaries
 
@@ -111,10 +116,10 @@ All five prior contract inconsistencies from `v0.1.6` are resolved at the shared
 4. **Editorial fixture scoping (`STARTER_STYLE_RULES`):** Retained as sample-only quick-fill suggestions in `FinalReview.tsx` (`نموذج مقترح للتجربة المحلية`), with zero auto-seeding into `localStorage` and zero AI fine-tuning claims.
 5. **Instructional placeholder provenance:** Custom-source offline drafts carry `origin: "instructional_template"` and `containsInstructionalPlaceholders: true`, cleanly distinguishing unedited local templates from `"manual"`, `"development_fixture"`, and future `"ai"` versions.
 
-## Recommended Future Phase Sequence (Do NOT Start Without Approval)
+## Recommended Phase Sequence (Updated Post-P02A Merge)
 
-- `feat/frontend-core`: frontend-only UX refinements, drawer/keyboard verification, and optional polish on merged contracts.
-- Isolated Lovable UX experiment (separate sanitized export only — never linked to canonical GitHub).
+- `feat/frontend-core` (active): frontend-only UX refinements (`UX-01`–`UX-04`), mobile/drawer/keyboard verification, and lightweight motion on merged P02A contracts (`docs/FRONTEND_UX_HANDOFF.md`).
+- Controlled Lovable collaboration: GitHub API read-only analysis → AG-controlled patch on `feat/frontend-core` (never automatic Git Sync replacement or unprotected direct `main` write).
 - Vercel frontend preview readiness (`NEXT_PUBLIC_NABDA_ADAPTER=development`, zero server secrets or billing).
 - `feat/backend-integrations`: Supabase schema/RLS, Gemini grounding, Azure Saudi TTS, Remotion MP4 worker, and real `HttpNabdaService`.
 

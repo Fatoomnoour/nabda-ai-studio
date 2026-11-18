@@ -1,7 +1,7 @@
-# نبضة — NABDA AI · Frontend Starter v0.1.6
+# نبضة — NABDA AI · Frontend Starter v0.1.7
 
-> **Saudi MIB 2027 — Track 02 · Phase 0.8**
-> جاهز كهيكل مشروع برمجي قابل للتوسعة، **وليس** نموذج AI/فيديو متكامل بعد.
+> **Saudi MIB 2027 — Track 02 · Phase 0.8 / P02A Merged → `feat/frontend-core`**
+> جاهز كهيكل مشروع Next.js 16 قابل للتوسعة وبعقود TypeScript مجمدة، **وليس** نموذج AI/فيديو متكامل بعد.
 
 ![NABDA AI logo](public/brand/nabda-logo.png)
 
@@ -63,22 +63,15 @@ Open `http://localhost:3000`. Dependencies are pinned cleanly via `package-lock.
 | `docs/BRAND_GUIDELINES.md` | ألوان/خطوط/شعار المرجع |
 | `docs/API_CONTRACT.md` | عقود Backend موثقة بـDRAFT |
 | `docs/BACKEND_HANDOFF.md` | دليل التسليم والتكاملات لـ Backend Lead |
+| `docs/FRONTEND_UX_HANDOFF.md` | دليل تحسين تجربة الواجهة وحوكمة التعاون مع Lovable على `feat/frontend-core` |
 | `docs/AG_FIRST_PROMPT.md` | أول أمر تنفيذي لـAntigravity |
 | `docs/CHANGELOG.md` | سجل التطوير |
 
 ## Git / Team Handoff
 
-بعد التحقق من المشروع **وبموافقة Project Lead**:
+تم إنشاء المستودع الخاص `https://github.com/NouraElsaman/nabda-ai-mvp.git` ودمج عقود **P02A** (`feat/api-contract-alignment` عبر PR #1) في `main`. راجع `git status` دوريًا وتأكد من عدم إضافة `.env.local` أو أي أسرار. يعمل Frontend Lead على `feat/frontend-core` (وفق `docs/FRONTEND_UX_HANDOFF.md`)، ويعمل Backend Lead على `feat/backend-integrations` انطلاقًا من `main` المحدّث، ويجري الدمج دائمًا عبر Pull Request ومراجعة بشرية.
 
-```powershell
-git init -b main
-# بعد مراجعة الملفات المهيأة (git status --short && git diff --cached --stat) وبموافقة صاحبة المستودع:
-git commit -m "chore: establish clean NABDA frontend baseline v0.1.6"
-git remote add origin https://github.com/OWNER/nabda-ai-mvp.git
-git push -u origin main
-```
-
-أنشئ Private GitHub Repository فارغًا باسم `nabda-ai-mvp` أولًا، واستبدل `OWNER`. راجع `git status` دوريًا وتأكد من عدم إضافة `.env.local` أو أي أسرار. يعمل Frontend Lead على `feat/frontend-core`، ويعمل Shared Contract Owner على `feat/api-contract-alignment` (**P02A**) قبل بدء Backend Lead على `feat/backend-integrations`، ويجري الدمج عبر Pull Request فقط. لا يُربط المستودع الرسمي بـ Lovable أو بأي صلاحية كتابة خارجية.
+- **سياسة التعاون مع Lovable:** يُسمح بربط **قراءة فقط (GitHub API Read-Only)** لتحليل الكود واقتراح تحسينات UX على Next.js 16، بينما يُمنع ربط **Git Sync** أو استبدال المستودع أو التحويل إلى Vite/React، وتبقى أي كتابة مباشرة على المستودع **مشروطة (Conditional)** بتوفّر GitHub Branch Protection فعليًا على `main` (المُعطّل حاليًا بـ `HTTP 403` على خطة GitHub Free الخاصة؛ لذا تُنفّذ التعديلات عبر Antigravity على `feat/frontend-core` ← اختبارات ← PR).
 
 ## Current limitations
 
