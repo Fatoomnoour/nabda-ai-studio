@@ -18,8 +18,11 @@ export default function DemoEntryPage() {
         <DemoEntryCopy part="title" />
         <DemoEntryCopy part="lead" />
         <div className="lp-cta__actions">
-          <Link href="/app" className="pulse-btn pulse-btn--primary pulse-btn--lg">
+          <a href="/studio" className="pulse-btn pulse-btn--primary pulse-btn--lg">
             <DemoEntryCopy part="enterBtn" />
+          </a>
+          <Link href="/app" className="pulse-btn pulse-btn--ghost pulse-btn--lg">
+            <DemoEntryCopy part="workspaceBtn" />
           </Link>
           <Link href="/" className="pulse-btn pulse-btn--ghost pulse-btn--lg">
             <DemoEntryCopy part="backBtn" />

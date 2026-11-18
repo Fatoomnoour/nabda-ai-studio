@@ -236,7 +236,6 @@ export const LANDING_EN = {
     disclaimerLabel: "Not active yet:",
     notOperational: [
       "Automated publishing",
-      "Live AI generation",
       "Saudi voiceover (TTS)",
       "MP4 video export",
     ],
@@ -363,14 +362,16 @@ export const LOGIN_COPY = {
   ar: {
     title: "دخول التجربة",
     lead: "هذي نسخة تجريبية بدون حسابات. عملك ونسخ السكريبت والاعتمادات تنحفظ في متصفحك فقط، ومسح بيانات المتصفح يحذفها.",
-    enterBtn: "ادخل مساحة العمل",
+    enterBtn: "ادخل الاستوديو الحي (توليد بالذكاء الاصطناعي)",
+    workspaceBtn: "مساحة العمل التجريبية (بدون توليد)",
     backBtn: "ارجع للصفحة الرئيسية",
     logoAlt: "نبضة — NABDA AI",
   },
   en: {
     title: "Demo Access",
     lead: "This is an account-free demo preview. Your projects, script revisions, and approvals are saved in your browser only — clearing browser storage removes them.",
-    enterBtn: "Enter Workspace",
+    enterBtn: "Open the Live Studio (AI generation)",
+    workspaceBtn: "Offline Workspace (no generation)",
     backBtn: "Back to Home",
     logoAlt: "NABDA AI",
   },

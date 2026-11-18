@@ -29,7 +29,7 @@ export function DemoEntryLogo() {
   );
 }
 
-export function DemoEntryCopy({ part }: { part: "title" | "lead" | "enterBtn" | "backBtn" }) {
+export function DemoEntryCopy({ part }: { part: "title" | "lead" | "enterBtn" | "workspaceBtn" | "backBtn" }) {
   const { lang } = usePreferences();
   const copy = LOGIN_COPY[lang];
   if (part === "title") return <h1 className="lp-title">{copy.title}</h1>;

@@ -98,7 +98,6 @@ export const VISION_FORMATS: VisionFormat[] = [
 
 export const NOT_OPERATIONAL = [
   "النشر التلقائي",
-  "التوليد الحي بالذكاء الاصطناعي",
   "الصوت السعودي (TTS)",
   "تصدير الفيديو MP4",
 ];

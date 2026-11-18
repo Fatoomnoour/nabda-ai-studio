@@ -1,5 +1,15 @@
 # NABDA AI — Change Log
 
+## Unreleased — Live Studio + Server AI Routes (Gemini first, Claude fallback) (2026-11-18)
+
+Requested by the Project Lead (Fatma) on branch `feat/live-studio-gemini`. Frozen contracts, fixtures, tests and brand assets untouched.
+
+- **Live studio (`public/studio/index.html`, served at `/studio` via a rewrite in `next.config.ts`):** the prototype studio with live generation — source facts linked to their sentences, a 5-agent swarm + checker, five formats (reel 9:16, carousel images, posts per platform, quiz, voice script), scheduled-campaign calendar, approval log (who approved and when), AI disclosure and privacy line. With no server key it falls back to an explicitly labelled demo mode on the aptitude sample only.
+- **Server routes (`src/app/api/{generate,health,tts}/route.ts`, `src/lib/server/ai-provider.ts`):** keys are server-only env vars. `GEMINI_API_KEY` → Gemini (`gemini-2.5-flash`, quick tier `gemini-2.5-flash-lite`); otherwise `ANTHROPIC_API_KEY` → Claude. `/api/tts` uses Gemini TTS (`GEMINI_TTS_MODEL`, default `gemini-3.8-flash-lite-tts`) and returns WAV; the studio falls back to the browser voice if it fails. Per-IP daily limit `DAILY_LIMIT_PER_IP` (default 80). No source text is stored.
+- **Demo entry (`/login`):** primary button → `/studio` (live generation); secondary → `/app` (offline workspace). Landing "not active" list no longer claims live AI generation is missing.
+- **Verification (local):** `typecheck` PASS · `lint` PASS · `build` PASS (routes: `/api/generate`, `/api/health`, `/api/tts` dynamic) · `test:contracts` 23/23 PASS · smoke test against a local mock of the Gemini API: `/api/health` → `{ok:true,provider:"gemini",tts:true}`, `/api/generate` streams text, `/api/tts` returns `audio/wav`, `/login` → `/studio` shows "متصل". **Not yet tested against the real Gemini API** (needs the real key on Vercel). Saudi dialect quality of Gemini TTS not yet verified by a Saudi reviewer.
+- **Known deviation from `AGENTS.md`:** the studio is a self-contained HTML page (not React components) and adds Gemini — both explicitly approved by the Project Lead for the 19 Nov prototype deadline. Porting the studio into React components is a follow-up.
+
 ## Unreleased — Light/Dark Mode & Bilingual Arabic/English (RTL/LTR) Support (2026-11-18)
 
 - **Preferences & i18n Layer (`src/lib/i18n/translations.ts`, `src/components/PreferencesProvider.tsx`, `src/components/PreferencesControls.tsx`, `src/app/layout.tsx`):**
