@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef } from "react";
+import { usePreferences } from "@/components/PreferencesProvider";
+import { LANDING_EN } from "@/lib/i18n/translations";
 import { PulseHero } from "./PulseHero";
 import { SiteNav } from "./SiteNav";
 import { ProblemSection } from "./ProblemSection";
@@ -15,14 +17,16 @@ import { useReveal } from "./useReveal";
 
 export function LandingPage() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const { theme, lang, dir } = usePreferences();
+  const logoUrl = theme === "light" ? "/brand/nabda-logo.png" : "/brand/nabda-logo-dark.png";
   useReveal(rootRef);
 
   return (
-    <div ref={rootRef} id="top" dir="rtl" lang="ar" className="nabda-page">
+    <div ref={rootRef} id="top" dir={dir} lang={lang} className="nabda-page">
       <a href="#main-content" className="lp-skip">
-        تخطَّ إلى المحتوى
+        {lang === "en" ? LANDING_EN.skipToContent : "تخطَّ إلى المحتوى"}
       </a>
-      <SiteNav logoUrl="/brand/nabda-logo.png" />
+      <SiteNav logoUrl={logoUrl} />
       <main id="main-content" tabIndex={-1}>
         <PulseHero />
         <ProblemSection />
@@ -33,7 +37,7 @@ export function LandingPage() {
         <ConversionSection />
         <FaqSection />
       </main>
-      <SiteFooter logoUrl="/brand/nabda-logo.png" />
+      <SiteFooter logoUrl={logoUrl} />
     </div>
   );
 }

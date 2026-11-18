@@ -3,9 +3,15 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
+import { usePreferences } from "@/components/PreferencesProvider";
+import { PreferencesControls } from "@/components/PreferencesControls";
+import { LANDING_EN } from "@/lib/i18n/translations";
 import { NAV_LINKS } from "./content";
 
 export function SiteNav({ logoUrl }: { logoUrl: string }) {
+  const { lang } = usePreferences();
+  const isEn = lang === "en";
+  const navLinks = isEn ? LANDING_EN.navLinks : NAV_LINKS;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -43,19 +49,29 @@ export function SiteNav({ logoUrl }: { logoUrl: string }) {
     <header className={cls}>
       <div className="nabda-nav__bar">
         <a href="#top" className="nabda-nav__brand">
-          <Image className="nabda-logo" src={logoUrl} alt="نبضة — NABDA AI" width={528} height={166} priority />
+          <Image
+            className="nabda-logo"
+            src={logoUrl}
+            alt={isEn ? LANDING_EN.brandAlt : "نبضة — NABDA AI"}
+            width={logoUrl.includes("dark") ? 428 : 528}
+            height={logoUrl.includes("dark") ? 109 : 166}
+            priority
+          />
         </a>
-        <nav aria-label="التنقل الرئيسي" className="nabda-nav__desktop">
+        <nav aria-label={isEn ? LANDING_EN.navAria : "التنقل الرئيسي"} className="nabda-nav__desktop">
           <ul>
-            {NAV_LINKS.map((l) => (
+            {navLinks.map((l) => (
               <li key={l.href}>
                 <a href={l.href}>{l.label}</a>
               </li>
             ))}
           </ul>
         </nav>
+        <div className="nabda-nav__prefs">
+          <PreferencesControls variant="landing" compact />
+        </div>
         <a href="#start" className="pulse-btn pulse-btn--primary nabda-nav__cta">
-          جرّب نبضة
+          {isEn ? LANDING_EN.tryCta : "جرّب نبضة"}
         </a>
         <button
           ref={toggleRef}
@@ -63,16 +79,16 @@ export function SiteNav({ logoUrl }: { logoUrl: string }) {
           className="nabda-nav__toggle"
           aria-expanded={open}
           aria-controls="nabda-mobile-menu"
-          aria-label={open ? "إغلاق القائمة" : "فتح القائمة"}
+          aria-label={open ? (isEn ? LANDING_EN.closeMenu : "إغلاق القائمة") : isEn ? LANDING_EN.openMenu : "فتح القائمة"}
           onClick={() => setOpen((v) => !v)}
         >
           {open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
         </button>
       </div>
       <div id="nabda-mobile-menu" ref={sheetRef} className="nabda-nav__sheet" hidden={!open}>
-        <nav aria-label="التنقل على الجوال">
+        <nav aria-label={isEn ? LANDING_EN.mobileNavAria : "التنقل على الجوال"}>
           <ul>
-            {NAV_LINKS.map((l) => (
+            {navLinks.map((l) => (
               <li key={l.href}>
                 <a href={l.href} onClick={() => setOpen(false)}>
                   {l.label}
@@ -80,8 +96,11 @@ export function SiteNav({ logoUrl }: { logoUrl: string }) {
               </li>
             ))}
           </ul>
+          <div className="nabda-nav__sheet-prefs">
+            <PreferencesControls variant="landing" />
+          </div>
           <a href="#start" className="pulse-btn pulse-btn--primary" onClick={() => setOpen(false)}>
-            جرّب نبضة
+            {isEn ? LANDING_EN.tryCta : "جرّب نبضة"}
           </a>
         </nav>
       </div>

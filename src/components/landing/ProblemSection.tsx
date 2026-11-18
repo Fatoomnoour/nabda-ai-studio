@@ -1,28 +1,45 @@
+"use client";
+
 import type { CSSProperties } from "react";
 import { Check, X } from "lucide-react";
+import { usePreferences } from "@/components/PreferencesProvider";
+import { LANDING_EN } from "@/lib/i18n/translations";
 
-const scattered = ["مسودة للفيديو", "نسخة للمنشور", "ملاحظات المراجع", "النسخة الأخيرة؟"];
-const flow = ["المصدر", "السكريبت", "المراجعة", "المعاينة"];
+const scatteredAr = ["مسودة للفيديو", "نسخة للمنشور", "ملاحظات المراجع", "النسخة الأخيرة؟"];
+const flowAr = ["المصدر", "السكريبت", "المراجعة", "المعاينة"];
 
 export function ProblemSection() {
+  const { lang } = usePreferences();
+  const isEn = lang === "en";
+  const en = LANDING_EN.problem;
+  const scattered = isEn ? en.scattered : scatteredAr;
+  const flow = isEn ? en.flow : flowAr;
+  const beforePoints = isEn
+    ? en.beforePoints
+    : ["كل منصة تُكتب من الصفر", "النبرة تتغيّر من نسخة لنسخة", "صعب تعرف أي نسخة اعتُمدت"];
+  const afterPoints = isEn
+    ? en.afterPoints
+    : ["سكريبت منظّم: افتتاحية ومحتوى ودعوة", "نسخ محفوظة في متصفحك تقدر ترجع لها", "اعتماد صريح منك قبل المعاينة"];
+
   return (
     <section id="problem" className="lp-section lp-problem" aria-labelledby="problem-title">
       <div className="lp-container">
         <header className="lp-head" data-reveal>
-          <p className="lp-eyebrow">التحدي</p>
+          <p className="lp-eyebrow">{isEn ? en.eyebrow : "التحدي"}</p>
           <h2 id="problem-title" className="lp-title">
-            مصدر واحد… وكل منصة تبغى لغة مختلفة
+            {isEn ? en.title : "مصدر واحد… وكل منصة تبغى لغة مختلفة"}
           </h2>
           <p className="lp-lead">
-            الخبر نفسه يحتاج يتحوّل لافتتاحية قصيرة للفيديو، ونص واضح للمنشور، ودعوة تناسب كل جمهور.
-            بدون مسار واضح، تضيع النبرة وتتكرر المراجعة.
+            {isEn
+              ? en.lead
+              : "الخبر نفسه يحتاج يتحوّل لافتتاحية قصيرة للفيديو، ونص واضح للمنشور، ودعوة تناسب كل جمهور. بدون مسار واضح، تضيع النبرة وتتكرر المراجعة."}
           </p>
         </header>
 
         <div className="lp-compare" data-reveal>
           <article className="lp-compare__card lp-compare__card--before">
-            <span className="lp-tag">قبل</span>
-            <h3>نسخ ولصق وإعادة صياغة متفرقة</h3>
+            <span className="lp-tag">{isEn ? en.beforeTag : "قبل"}</span>
+            <h3>{isEn ? en.beforeTitle : "نسخ ولصق وإعادة صياغة متفرقة"}</h3>
             <div className="lp-scatter" aria-hidden="true">
               {scattered.map((s, i) => (
                 <span key={s} style={{ "--i": i } as CSSProperties}>
@@ -31,9 +48,12 @@ export function ProblemSection() {
               ))}
             </div>
             <ul className="lp-checklist lp-checklist--neg">
-              <li><X aria-hidden="true" />كل منصة تُكتب من الصفر</li>
-              <li><X aria-hidden="true" />النبرة تتغيّر من نسخة لنسخة</li>
-              <li><X aria-hidden="true" />صعب تعرف أي نسخة اعتُمدت</li>
+              {beforePoints.map((pt) => (
+                <li key={pt}>
+                  <X aria-hidden="true" />
+                  {pt}
+                </li>
+              ))}
             </ul>
           </article>
 
@@ -45,9 +65,9 @@ export function ProblemSection() {
           </div>
 
           <article className="lp-compare__card lp-compare__card--after">
-            <span className="lp-tag lp-tag--mint">مع نبضة</span>
-            <h3>مسار واحد مرتّب من المصدر للمعاينة</h3>
-            <ol className="lp-flow" aria-label="مراحل المسار">
+            <span className="lp-tag lp-tag--mint">{isEn ? en.afterTag : "مع نبضة"}</span>
+            <h3>{isEn ? en.afterTitle : "مسار واحد مرتّب من المصدر للمعاينة"}</h3>
+            <ol className="lp-flow" aria-label={isEn ? en.flowAria : "مراحل المسار"}>
               {flow.map((s, i) => (
                 <li key={s} style={{ "--i": i } as CSSProperties}>
                   {s}
@@ -55,9 +75,12 @@ export function ProblemSection() {
               ))}
             </ol>
             <ul className="lp-checklist">
-              <li><Check aria-hidden="true" />سكريبت منظّم: افتتاحية ومحتوى ودعوة</li>
-              <li><Check aria-hidden="true" />نسخ محفوظة في متصفحك تقدر ترجع لها</li>
-              <li><Check aria-hidden="true" />اعتماد صريح منك قبل المعاينة</li>
+              {afterPoints.map((pt) => (
+                <li key={pt}>
+                  <Check aria-hidden="true" />
+                  {pt}
+                </li>
+              ))}
             </ul>
           </article>
         </div>

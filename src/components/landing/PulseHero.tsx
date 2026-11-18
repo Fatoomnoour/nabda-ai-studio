@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePreferences } from "@/components/PreferencesProvider";
+import { LANDING_EN } from "@/lib/i18n/translations";
 import { frameAt, pulsePath, HOME } from "@/lib/landing/pulse-timeline";
 
 export function PulseHero() {
+  const { lang } = usePreferences();
+  const isEn = lang === "en";
+  const en = LANDING_EN.hero;
   const sectionRef = useRef<HTMLElement>(null);
   const lineRef = useRef<SVGPathElement>(null);
   const dotRef = useRef<SVGGElement>(null);
@@ -58,19 +63,28 @@ export function PulseHero() {
     >
       <div className="pulse-hero__stage">
         <div className="pulse-hero__copy">
-          <p className="pulse-hero__eyebrow">نبضة · NABDA AI</p>
+          <p className="pulse-hero__eyebrow">{isEn ? en.eyebrow : "نبضة · NABDA AI"}</p>
           <h1 id="hero-title" className="pulse-hero__title">
-            من خبر واحد… إلى حملة كاملة
-            <span>بلغة جمهورك وعلى كل منصة</span>
+            {isEn ? en.titleLine1 : "من خبر واحد… إلى حملة كاملة"}
+            <span>{isEn ? en.titleLine2 : "بلغة جمهورك وعلى كل منصة"}</span>
           </h1>
           <div className="pulse-hero__actions">
-            <a href="#start" className="pulse-btn pulse-btn--primary">جرّب نبضة</a>
-            <a href="#how" className="pulse-btn pulse-btn--ghost">اكتشف كيف تعمل</a>
+            <a href="#start" className="pulse-btn pulse-btn--primary">
+              {isEn ? en.primaryCta : "جرّب نبضة"}
+            </a>
+            <a href="#how" className="pulse-btn pulse-btn--ghost">
+              {isEn ? en.secondaryCta : "اكتشف كيف تعمل"}
+            </a>
           </div>
         </div>
 
         <div className="pulse-hero__art">
-          <svg viewBox="0 0 600 300" role="img" aria-label="نبضة: نقطة تنطلق وترتد ثم تستقر وتبدأ النبضة" className="pulse-svg">
+          <svg
+            viewBox="0 0 600 300"
+            role="img"
+            aria-label={isEn ? en.svgAria : "نبضة: نقطة تنطلق وترتد ثم تستقر وتبدأ النبضة"}
+            className="pulse-svg"
+          >
             <path ref={lineRef} d={pulsePath(0, 0)} className={alive ? "pulse-line pulse-line--alive" : "pulse-line"} />
             <g ref={sparkRef} className="pulse-spark" style={{ transform: `translate(${HOME.x}px, ${HOME.y}px)`, opacity: 0 }}>
               {[0, 60, 120, 180, 240, 300].map((a) => (
@@ -81,9 +95,9 @@ export function PulseHero() {
               <circle r="13" />
             </g>
           </svg>
-          <p className="pulse-hero__note">رسم حركي مشتق للنبضة، منفصل عن الشعار الرسمي.</p>
+          <p className="pulse-hero__note">{isEn ? en.note : "رسم حركي مشتق للنبضة، منفصل عن الشعار الرسمي."}</p>
         </div>
-        {animated && <p className="pulse-hero__scroll" aria-hidden="true">مرّر للأسفل</p>}
+        {animated && <p className="pulse-hero__scroll" aria-hidden="true">{isEn ? en.scrollHint : "مرّر للأسفل"}</p>}
       </div>
     </section>
   );

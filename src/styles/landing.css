@@ -28,12 +28,17 @@
 }
 .nabda-logo {
   display: block;
-  width: clamp(9rem, 19vw, 13.2rem);
+  width: clamp(8.2rem, 15vw, 11.4rem);
   height: auto;
-  padding: 0.35rem 0.6rem;
-  border-radius: 0.25rem;
-  background: var(--nabda-cream);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
   object-fit: contain;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.nabda-nav__brand:hover .nabda-logo {
+  opacity: 0.88;
+  transform: translateY(-1px);
 }
 
 .pulse-hero {
@@ -646,4 +651,191 @@ html { scroll-behavior: smooth; scroll-padding-top: 5.5rem; }
 /* Demo entry (/login) */
 .lp-demo-entry { display: grid; place-items: center; padding: 2rem 1rem; }
 .lp-demo-entry__card { width: min(100%, 34rem); display: grid; gap: 1.25rem; justify-items: center; text-align: center; padding: clamp(1.5rem, 5vw, 3rem); border-radius: 1.25rem; background: var(--nabda-panel); box-shadow: var(--shadow-nabda-panel); }
+.lp-demo-entry__top { width: 100%; display: flex; justify-content: flex-end; }
 .lp-demo-entry .lp-cta__actions { justify-content: center; }
+
+/* Preferences switcher in landing nav & login */
+.nabda-nav__prefs { display: flex; align-items: center; flex-shrink: 0; }
+.nabda-nav__sheet-prefs { display: flex; justify-content: center; margin-bottom: 0.75rem; }
+.prefs-controls--landing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--nabda-line);
+  background: color-mix(in oklab, var(--nabda-panel) 72%, transparent);
+}
+.prefs-controls--landing .prefs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 34px;
+  min-width: 34px;
+  padding: 0 0.7rem;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--nabda-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.prefs-controls--landing.is-compact .prefs-btn {
+  padding: 0 0.55rem;
+}
+.prefs-controls--landing .prefs-btn:hover {
+  background: color-mix(in oklab, var(--nabda-mint) 18%, transparent);
+  color: var(--nabda-mint);
+}
+@media (max-width: 860px) {
+  .nabda-nav__prefs { margin-inline-start: auto; }
+  .nabda-nav__toggle { margin-inline-start: 0.35rem; }
+}
+
+/* LTR adjustments for English mode */
+.nabda-page[dir="ltr"] .lp-flow li:not(:last-child)::after {
+  content: "→";
+}
+.nabda-page[dir="ltr"] .lp-steps__fill {
+  background: linear-gradient(to right, var(--nabda-mint), var(--nabda-gold));
+  transform-origin: left;
+}
+.nabda-page[dir="ltr"] .lp-compare__bridge svg {
+  transform: scaleX(-1);
+}
+.nabda-page[dir="ltr"] .lp-mark {
+  background-position: 0% 88%;
+}
+.nabda-page[dir="ltr"] .reveal-ready .lp-compare:not(.is-visible) .lp-compare__card--before {
+  transform: translate3d(-24px, 0, 0);
+}
+.nabda-page[dir="ltr"] .reveal-ready .lp-compare:not(.is-visible) .lp-compare__card--after {
+  transform: translate3d(24px, 0, 0);
+}
+
+/* Light Mode palette for Landing & /login (preserves NABDA Cream + Deep Emerald + Gold identity) */
+html[data-theme="light"] .nabda-page {
+  --nabda-deep: #f7f4ec;
+  --nabda-forest: #ecf3ef;
+  --nabda-emerald: #137a63;
+  --nabda-emerald-deep: #e2efe9;
+  --nabda-mint: #0e7c66;
+  --nabda-gold: #9a6f1f;
+  --nabda-cream: #efeadd;
+  --nabda-ink-muted: #42615b;
+  --nabda-text: #0b2425;
+  --nabda-muted: #43625c;
+  --nabda-line: rgba(11, 36, 37, 0.12);
+  --nabda-panel: #ffffff;
+  --shadow-nabda-panel: 0 24px 54px -28px rgba(11, 42, 43, 0.18), 0 0 0 1px rgba(11, 36, 37, 0.1);
+  --shadow-nabda-gold: 0 12px 32px -12px rgba(154, 111, 31, 0.25);
+}
+html[data-theme="light"] .nabda-logo {
+  background: transparent;
+  padding: 0;
+}
+html[data-theme="light"] .pulse-btn--primary {
+  background: #0e7c66;
+  color: #ffffff;
+}
+html[data-theme="light"] .pulse-btn--ghost {
+  color: #0b2425;
+  border-color: rgba(11, 36, 37, 0.24);
+}
+html[data-theme="light"] .pulse-btn--ghost:hover {
+  border-color: #9a6f1f;
+  color: #7d5813;
+}
+html[data-theme="light"] .nabda-nav.is-scrolled,
+html[data-theme="light"] .nabda-nav.is-open {
+  background: rgba(247, 244, 236, 0.92);
+  box-shadow: 0 1px 0 rgba(11, 36, 37, 0.1), 0 14px 32px -24px rgba(11, 36, 37, 0.2);
+}
+html[data-theme="light"] .lp-compare__card--before {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(11, 36, 37, 0.18);
+}
+html[data-theme="light"] .lp-compare__card--after {
+  background: linear-gradient(160deg, #ffffff, #edf6f2);
+  border-color: rgba(14, 124, 102, 0.32);
+}
+html[data-theme="light"] .lp-how {
+  background: linear-gradient(180deg, #e7f2ed, #f5f2ea);
+}
+html[data-theme="light"] .lp-step__num {
+  background: #ffffff;
+  color: #0b2425;
+}
+html[data-theme="light"] .lp-step[aria-selected="true"] .lp-step__num {
+  background: #0e7c66;
+  color: #ffffff;
+}
+html[data-theme="light"] .lp-stage {
+  background: #ffffff;
+  border-color: rgba(14, 124, 102, 0.24);
+}
+html[data-theme="light"] .lp-stage__facts > div {
+  background: #f4f8f6;
+}
+html[data-theme="light"] .lp-mock {
+  background: #ffffff;
+}
+html[data-theme="light"] .mock-textarea,
+html[data-theme="light"] .mock-block,
+html[data-theme="light"] .mock-quote {
+  background: #f5f8f6;
+}
+html[data-theme="light"] .mock-btn {
+  background: #0e7c66;
+  color: #ffffff;
+}
+html[data-theme="light"] .mock-box {
+  background: #0e7c66;
+  color: #ffffff;
+}
+html[data-theme="light"] .mock-board li {
+  color: #e9f1ee;
+  background:
+    linear-gradient(180deg, transparent 35%, rgba(6, 23, 24, 0.86)),
+    linear-gradient(calc(140deg + var(--i) * 25deg), #0e3a38, #1c4c47);
+}
+html[data-theme="light"] .mock-board li span:last-child {
+  color: #c6ded7;
+}
+html[data-theme="light"] .mock-frame__num {
+  background: #061718;
+  color: #d4b06a;
+}
+html[data-theme="light"] .lp-local {
+  background: #eee9dc;
+  color: #0b2425;
+}
+html[data-theme="light"] .lp-voice__row--local {
+  background: #0b2a2b;
+  color: #f6f3ec;
+}
+html[data-theme="light"] .lp-voice__row--local span {
+  color: #e0be78;
+}
+html[data-theme="light"] .lp-vision {
+  background: linear-gradient(180deg, #f7f4ec, #e9f2ee);
+}
+html[data-theme="light"] .lp-formats li,
+html[data-theme="light"] .lp-campaign {
+  background: #ffffff;
+}
+html[data-theme="light"] .lp-cta {
+  background: linear-gradient(180deg, #e5f1ec, #dcece5);
+}
+html[data-theme="light"] .lp-qa {
+  background: #ffffff;
+}
+html[data-theme="light"] .lp-footer {
+  background: #ece7da;
+}
+html[data-theme="light"] .lp-skip {
+  background: #0e7c66;
+  color: #ffffff;
+}

@@ -1,30 +1,45 @@
+"use client";
+
 import Image from "next/image";
+import { usePreferences } from "@/components/PreferencesProvider";
+import { LANDING_EN } from "@/lib/i18n/translations";
 import { NAV_LINKS } from "./content";
 
 export function SiteFooter({ logoUrl }: { logoUrl: string }) {
+  const { lang } = usePreferences();
+  const isEn = lang === "en";
+  const en = LANDING_EN.footer;
+  const navLinks = isEn ? LANDING_EN.navLinks : NAV_LINKS;
+
   return (
     <footer className="lp-footer">
       <div className="lp-container lp-footer__inner">
         <div className="lp-footer__brand">
-          <Image className="nabda-logo" src={logoUrl} alt="نبضة — NABDA AI" width={528} height={166} />
-          <p>من خبر واحد إلى محتوى بلغة جمهورك، تحت مراجعتك.</p>
+          <Image
+            className="nabda-logo"
+            src={logoUrl}
+            alt={isEn ? LANDING_EN.brandAlt : "نبضة — NABDA AI"}
+            width={logoUrl.includes("dark") ? 428 : 528}
+            height={logoUrl.includes("dark") ? 109 : 166}
+          />
+          <p>{isEn ? en.tagline : "من خبر واحد إلى محتوى بلغة جمهورك، تحت مراجعتك."}</p>
         </div>
-        <nav aria-label="روابط التذييل">
+        <nav aria-label={isEn ? en.navAria : "روابط التذييل"}>
           <ul>
-            {NAV_LINKS.map((l) => (
+            {navLinks.map((l) => (
               <li key={l.href}>
                 <a href={l.href}>{l.label}</a>
               </li>
             ))}
             <li>
-              <a href="#faq">أسئلة شائعة</a>
+              <a href="#faq">{isEn ? en.faqLink : "أسئلة شائعة"}</a>
             </li>
           </ul>
         </nav>
       </div>
       <div className="lp-container lp-footer__legal">
-        <p>نموذج مرئي للمراجعة، ولا يمثّل الخدمة النهائية.</p>
-        <p>© 2026 نبضة NABDA AI</p>
+        <p>{isEn ? en.legalNote : "نموذج مرئي للمراجعة، ولا يمثّل الخدمة النهائية."}</p>
+        <p>{isEn ? en.copyright : "© 2026 نبضة NABDA AI"}</p>
       </div>
     </footer>
   );

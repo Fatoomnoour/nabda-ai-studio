@@ -1,5 +1,16 @@
 # NABDA AI — Change Log
 
+## Unreleased — Light/Dark Mode & Bilingual Arabic/English (RTL/LTR) Support (2026-11-18)
+
+- **Preferences & i18n Layer (`src/lib/i18n/translations.ts`, `src/components/PreferencesProvider.tsx`, `src/components/PreferencesControls.tsx`, `src/app/layout.tsx`):**
+  - Added React 19 `useSyncExternalStore`-backed `PreferencesProvider` persisting `nabda-theme` (`dark` default | `light`) and `nabda-lang` (`ar` RTL default | `en` LTR) in `localStorage`, plus a pre-hydration inline script in `layout.tsx` to prevent theme/direction flash.
+  - Added reusable accessible `PreferencesControls` switcher (`AR / EN` + `Light / Dark`) placed in `SiteNav` (desktop & mobile), `/login` demo entry card, and `/app` workspace header.
+- **Bilingual Coverage (`src/components/landing/**`, `src/app/login/page.tsx`, `src/components/NabdaWorkspace.tsx`, `src/features/{content,script,video,review}/*.tsx`):**
+  - Added complete Arabic/English translations and directional icon/layout switching across the landing page, demo entry page, and all 5 workspace views while preserving frozen contracts (`domain.ts`, `service.ts`, `client.ts`), fixtures, and all static/contract tests untouched.
+- **Light Mode & LTR Styling (`src/app/globals.css`, `src/styles/landing.css`):**
+  - Added cohesive NABDA Cream + Deep Emerald + Gold `[data-theme="light"]` token overrides and LTR directional rules (`.app-shell[dir="ltr"]`, mobile drawer slide direction, flow arrows, step progress fill), while keeping the 9:16 storyboard video frame high-contrast dark-cinema.
+- **Verification (local working tree, uncommitted):** `npm run typecheck` PASS (`0 errors`), `npm run lint` PASS (`0 errors, 0 warnings`), `npm run build` PASS (Next.js `16.4.6` Turbopack), `npm run test:contracts` `22/23` PASS (`1` pre-existing Windows Git CRLF hash mismatch on untouched `docs/references/leader-prototype.html`).
+
 ## v0.1.7 — Phase P02A.2 / P02B.0: Contract PR Merge, `main` Sync & `feat/frontend-core` UX Handoff (2026-11-18)
 
 - **P02A PR #1 Merged to `main`:** Created and merged PR #1 (`https://github.com/NouraElsaman/nabda-ai-mvp/pull/1`, `feat/api-contract-alignment` `e1184d2` → `main`) via regular merge commit `bc932b73630b1599e29a68f99cda9467d2c7032a` after verifying all `15` changed files, `typecheck`, `lint`, `build`, `17/17` contract tests, and protected asset SHA-256 hashes.
