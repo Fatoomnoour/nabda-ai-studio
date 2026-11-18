@@ -14,7 +14,6 @@ export function PulseHero() {
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     if (reduce.matches) return;
-    setAnimated(true);
     let raf = 0;
     const render = () => {
       raf = 0;
@@ -37,10 +36,14 @@ export function PulseHero() {
     const onScroll = () => {
       if (!raf) raf = requestAnimationFrame(render);
     };
-    render();
+    const initRaf = requestAnimationFrame(() => {
+      setAnimated(true);
+      onScroll();
+    });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
+      cancelAnimationFrame(initRaf);
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
