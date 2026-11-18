@@ -2,6 +2,28 @@
 
 Status language: **PASS** = verified by executed test; **FAIL** = executed and failed; **BLOCKED** = could not execute due environment; **NOT TESTED** / **NOT MEASURED** = not attempted in live browser; **NOT IMPLEMENTED** = intentionally deferred.
 
+## P02A Shared API Contract Freeze & Pre-Backend Integration Readiness (2026-11-18)
+
+### Environment & Branch Status
+
+- Workspace: `<workspace-root>/nabda-ai-mvp` (external pre-P02A backup checkpoint stored locally outside repository)
+- Node.js: `v24.17.0` | npm: `11.13.0` | Git: `2.55.0.windows.3` (feature branch `feat/api-contract-alignment` branched from clean `main` at `3ce96a22c947d5c616a7e7ddfe7d9b4a462daa43`)
+
+### Engineering, Contract Freeze & Manual Visual Review Results (`v0.1.7`)
+
+| Check | Status | Actual Output / Evidence |
+|---|---|---|
+| `npm run typecheck` | PASS | Exit 0 (`tsc --noEmit`) |
+| `npm run lint` | PASS | Exit 0 (`eslint .` — 0 errors, 0 warnings) |
+| `npm run build` | PASS | Exit 0 (`next build` Next.js `16.4.6` Turbopack static routes `/` and `/_not-found`) |
+| `npm run test:contracts` | PASS | Exit 0 — `17/17` subtests across 4 suites (`tests/starter-structure.test.mjs`, `tests/p0-stabilization.test.mjs`), covering 8-category Node `crypto` SHA-256 oracle verification, `VERSION_CONFLICT`, `CONTENT_HASH_MISMATCH`, mandatory `VideoStartInput.expectedScriptHash`, `"instructional_template"` origin, legacy `localStorage` compatibility, and `STARTER_STYLE_RULES` |
+| Manual visual mobile review (`v0.1.6` screenshots) | PASS (Manual Visual) | Preserved from Frontend Lead v0.1.6 screenshots (`v0.1.7` UI unchanged visually except optional quick-fill sample rule chips in `FinalReview`) |
+| Browser automation (`chrome_devtools` MCP) | NOT TESTED | `BROWSER AUTOMATION: NOT TESTED` — never marked PASS |
+| Runtime Web Vitals (LCP, CLS, INP) / Lighthouse | NOT MEASURED | Requires live Chrome DevTools / Lighthouse session on `npm run start` |
+| AI, Supabase, TTS, MP4 backend services | NOT IMPLEMENTED | Intentionally deferred (`HttpNabdaService` remains fail-closed; HTTP routes remain `ALL ROUTES DRAFT`) |
+
+---
+
 ## P01D.4 Completed / P01D.5 Documentation Sync — GitHub Baseline Verification (2026-11-18)
 
 ### Environment & Status
@@ -83,7 +105,7 @@ Status language: **PASS** = verified by executed test; **FAIL** = executed and f
 - **P01B (`v0.1.2`, 2026-11-17)**: Derived `nabda-logo-dark.png` (`428×109`, `2,178` B) from untouched `nabda-logo.png` (`8,898` B), fixed `9:16 · 720×1280` BiDi reversal, and localized all UI/service copy to gender-neutral Saudi White Arabic.
 - **P01A (`v0.1.1`, 2026-11-17)**: Regenerated `package-lock.json` via `npm install` + `npm ci`, fixed `react-hooks/set-state-in-effect` lint error (`0` errors, `0` warnings), and enforced field-specific and section-level validation.
 
-## Next phase gates (`P02A` -> `feat/backend-integrations` / `feat/frontend-core`)
+## Next phase gates (`feat/api-contract-alignment` PR -> `feat/backend-integrations` / `feat/frontend-core`)
 
-1. Confirm `Private` badge and `main` branch protection rules in the GitHub repository UI (`https://github.com/NouraElsaman/nabda-ai-mvp`).
-2. Start **P02A** on `feat/api-contract-alignment` from clean `main` to align and freeze the `5` `DRAFT` API contract mismatches before branching `feat/backend-integrations` or `feat/frontend-core`.
+1. Project Lead: review and approve merging the Pull Request (`feat/api-contract-alignment` -> `main`) on GitHub.
+2. After `P02A` merges: Backend Lead starts `feat/backend-integrations` from updated `main`; Frontend Lead uses `feat/frontend-core` independently (and optional isolated Lovable / Vercel development preview if separately approved).

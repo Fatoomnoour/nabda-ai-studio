@@ -7,8 +7,9 @@
 - Base: `/api/v1`, JSON request/response, `camelCase`, UUID identifiers, ISO-8601 UTC timestamps.
 - Authorization: authenticated team/user session, enforced on server. Do **not** permit anonymous production writes.
 - Idempotency: `Idempotency-Key` for create/generate/render endpoints; server deduplicates.
-- Versions: immutable scripts, source versions, asset versions. Approval tied to ID + SHA-256 digest of exact normalized bytes.
-- Errors: HTTP 400 invalid input; 401 unauthenticated; 403 unauthorized; 404 not found; 409 stale or unapproved version; 422 unsupported content; 429 rate limit; 500 internal; 503 external provider unavailable.
+- Versions: immutable scripts, source versions, asset versions. Approval binds to `versionId` + canonical SHA-256 digest (`sha256:<64-hex>`) computed on normalized sections (`JSON.stringify({ hook: hook.replace(/\r\n?/g, "\n").trim(), body: ..., cta: ... })`, implemented in `canonicalizeScriptSections` / `computeScriptContentHash` in `src/lib/utils/client.ts`).
+- `ScriptOrigin` enum (`src/lib/contracts/domain.ts`): `"development_fixture" | "instructional_template" | "manual" | "ai"`. Custom offline drafts with unmodified guide text carry `origin: "instructional_template"` and `containsInstructionalPlaceholders: true`; server `/scripts/generate` responses MUST always return `origin: "ai"` and `containsInstructionalPlaceholders: false`.
+- Errors (`ApiErrorCode` / `ApiErrorPayload` / `NabdaContractError`): HTTP 400 `INVALID_INPUT`; 401 `UNAUTHORIZED`; 403 `FORBIDDEN`; 404 `NOT_FOUND`; 409 `VERSION_CONFLICT` / `CONTENT_HASH_MISMATCH` / `FACTS_NEED_REVIEW` / `SCRIPT_NOT_APPROVED` / `VIDEO_NOT_READY`; 422 `INVALID_MODEL_OUTPUT` / `SOURCE_TOO_LONG`; 429 `RENDER_QUOTA` / `RATE_LIMITED`; 503 `AI_UNAVAILABLE` / `TTS_UNAVAILABLE` / `INTEGRATION_NOT_CONFIGURED`.
 
 ### Unified error response
 
@@ -50,51 +51,51 @@ Request:
 ```
 Response `201`:
 ```json
-{"scriptVersion":{"id":"uuid","version":1,"sections":{"hook":"...","body":"...","cta":"..."},"origin":"ai","contentHash":"sha256...","createdAt":"..."},"facts":[{"id":"uuid","statement":"...","quote":"literal from source","start":14,"end":44,"state":"supported"}],"warnings":[{"code":"CLAIM_NEEDS_REVIEW","text":"..."}],"appliedPreferenceIds":[]}
+{"scriptVersion":{"id":"uuid","version":1,"sections":{"hook":"...","body":"...","cta":"..."},"origin":"ai","containsInstructionalPlaceholders":false,"contentHash":"sha256:...","createdAt":"..."},"facts":[{"id":"uuid","statement":"...","quote":"literal from source","start":14,"end":44,"state":"supported"}],"warnings":[{"code":"CLAIM_NEEDS_REVIEW","text":"..."}],"appliedPreferenceIds":[]}
 ```
-Must validate JSON schema; quote offsets must exactly match source text or be `needs_review`. Idea-mode output cannot claim grounded verification. UI `draft` → `script_ready`. Errors: `AI_UNAVAILABLE`, `INVALID_MODEL_OUTPUT`, `SOURCE_TOO_LONG`, `RATE_LIMITED`.
+Must validate JSON schema; quote offsets must exactly match source text (`sourceText.slice(start, end) === quote`) or be flagged `needs_review`. Idea-mode output (`mode === "idea"`) cannot claim grounded verification. UI `draft` → `script_ready`. Errors: `AI_UNAVAILABLE`, `INVALID_MODEL_OUTPUT`, `SOURCE_TOO_LONG`, `RATE_LIMITED`.
 
 ### 4. Save script revision — P0 — DRAFT
 
-`POST /api/v1/projects/{projectId}/scripts/revisions` (Owner: Backend Lead)
+`POST /api/v1/projects/{projectId}/scripts/revisions` (Owner: Backend Lead; client signature: `NabdaService.reviseScript(projectId, sections, baseVersionId)`)
 
-Request:
+Request (`ReviseScriptInput`):
 ```json
-{"baseVersionId":"uuid","sections":{"hook":"...","body":"...","cta":"..."}}
+{"projectId":"uuid","baseVersionId":"uuid","sections":{"hook":"...","body":"...","cta":"..."}}
 ```
 Response `201`:
 ```json
-{"scriptVersionId":"new-uuid","version":2,"status":"script_ready","approvalValid":false}
+{"scriptVersionId":"new-uuid","version":2,"contentHash":"sha256:...","origin":"manual","containsInstructionalPlaceholders":false,"status":"script_ready","approvalValid":false}
 ```
-New immutable version; never overwrite. `409 VERSION_CONFLICT` if base is stale. UI `script_ready` and invalidate downstream approvals for current version.
+New immutable version; never overwrite. Deterministic `409 VERSION_CONFLICT` if `baseVersionId` does not match the latest server version ID. UI `script_ready` and invalidates prior approvals.
 
 ### 5. Approve script — P0 — DRAFT
 
-`POST /api/v1/projects/{projectId}/scripts/{versionId}/approve` (Owner: Backend Lead)
+`POST /api/v1/projects/{projectId}/scripts/{versionId}/approve` (Owner: Backend Lead; client signature: `NabdaService.approveScript(projectId, versionId, expectedContentHash)`)
 
-Request:
+Request (`ApproveScriptInput`):
 ```json
-{"expectedContentHash":"sha256..."}
+{"projectId":"uuid","versionId":"uuid","expectedContentHash":"sha256:..."}
 ```
 Response `201`:
 ```json
-{"approvalId":"uuid","versionId":"uuid","approved":true,"approvedAt":"..."}
+{"approvalId":"uuid","versionId":"uuid","contentHash":"sha256:...","approved":true,"approvedAt":"..."}
 ```
-Server checks exact current version/hash, authorized reviewer, fact warnings acknowledgment when needed. Errors: `409 VERSION_CONFLICT`, `409 FACTS_NEED_REVIEW`. UI `script_ready` → `script_approved`.
+Server checks exact current `versionId` (`409 VERSION_CONFLICT`), computes canonical `contentHash` (`409 CONTENT_HASH_MISMATCH`), rejects unedited instructional placeholders (`400 INVALID_INPUT`), checks authorized reviewer, and checks fact warnings acknowledgment when needed (`409 FACTS_NEED_REVIEW`). UI `script_ready` → `script_approved`.
 
 ### 6. Request video generation — P0 — DRAFT
 
-`POST /api/v1/projects/{projectId}/video-jobs` (Owner: Backend Lead)
+`POST /api/v1/projects/{projectId}/video-jobs` (Owner: Backend Lead; client signature: `NabdaService.requestVideoRender(input: VideoStartInput)`)
 
-Request:
+Request (`VideoStartInput` — **all 5 fields mandatory**):
 ```json
-{"scriptVersionId":"uuid","voiceId":"ar-SA-ZariyahNeural","templateId":"nabda-educational-v1"}
+{"projectId":"uuid","scriptVersionId":"uuid","voiceId":"ar-SA-ZariyahNeural","templateId":"nabda-educational-v1","expectedScriptHash":"sha256:..."}
 ```
 Response `202`:
 ```json
-{"jobId":"uuid","state":"queued","stage":"queued"}
+{"jobId":"uuid","projectId":"uuid","scriptVersionId":"uuid","state":"queued","stageLabel":"في انتظار المعالجة"}
 ```
-Must verify script approval by exact ID/hash, quota, bounded concurrency. Errors: `409 SCRIPT_NOT_APPROVED`, `503 TTS_UNAVAILABLE`, `429 RENDER_QUOTA`. UI `script_approved` → `queued`.
+Server validation rule: (1) require non-empty `expectedScriptHash` (`400 INVALID_INPUT` if missing), (2) verify `scriptVersionId` is the latest approved script version (`409 SCRIPT_NOT_APPROVED` otherwise), (3) recompute canonical SHA-256 of the persisted version and match BOTH `expectedScriptHash` and `ApprovalEvent.contentHash` (`409 CONTENT_HASH_MISMATCH` if tampered/stale), (4) verify quota & bounded concurrency (`503 TTS_UNAVAILABLE`, `429 RENDER_QUOTA`). UI remains in disabled/pending preview until backend is enabled.
 
 ### 7. Video job status — P0 — DRAFT
 
@@ -156,10 +157,11 @@ Response `201`:
 ```
 Require explicit approval and not factual correction; avoid promoting source-specific facts into style rules. Request can also support explicit manual rules with appropriately recorded provenance.
 
-### Backend integration strategy
+### Backend integration strategy & frozen P02A boundary
 
-- Preserve UI domain shapes from `src/lib/contracts/domain.ts`. API JSON has predictable `camelCase` fields.
-- Replace `HttpNabdaService` fail-closed methods incrementally with fetch calls; do **not** insert provider API keys in the frontend.
+- Preserve UI domain shapes from `src/lib/contracts/domain.ts` and `NabdaService` method signatures in `src/lib/api/service.ts` (frozen in P02A for `reviseScript`, `approveScript`, `requestVideoRender`, `ScriptVersion.contentHash`, `containsInstructionalPlaceholders`, and `NabdaContractError`). API JSON uses matching `camelCase` fields.
+- Replace `HttpNabdaService` fail-closed methods incrementally with `fetch` calls returning typed domain models or throwing `NabdaContractError(code, message, retryable)`; do **not** insert provider API keys in the frontend.
+- `STARTER_STYLE_RULES` in `src/lib/fixtures/aptitude.ts` is strictly an optional sample-chip helper in `FinalReview` (`local` quick-fill only, never auto-seeded into persistence and never automatic AI training).
 - Never change `LocalDevelopmentService` to silently call production APIs. Choose adapters explicitly via config.
-- Update `docs/API_CONTRACT.md` statuses only after implementation and test evidence.
-- Write server-side end-to-end tests for staleness, source quote positions, unauthorized downloads, safe retry and no export before approval.
+- Update `docs/API_CONTRACT.md` route statuses from `DRAFT` only after backend implementation and test evidence.
+- Write server-side end-to-end tests for `VERSION_CONFLICT`, `CONTENT_HASH_MISMATCH`, source quote offsets, unauthorized downloads, safe retry, and no export before approval.

@@ -2368,6 +2368,39 @@ select.field-input {
   flex: 1;
 }
 
+.sample-rules {
+  margin-top: 10px;
+}
+
+.sample-rules > small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.sample-rules-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sample-rule-chip {
+  border: 1px dashed rgba(212, 176, 106, 0.34);
+  background: rgba(212, 176, 106, 0.07);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 11.5px;
+  text-align: start;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.sample-rule-chip:hover {
+  border-color: rgba(63, 209, 168, 0.45);
+  background: rgba(63, 209, 168, 0.08);
+}
+
 .memory-list-col {
   min-width: 0;
 }

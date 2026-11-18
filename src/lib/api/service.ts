@@ -1,28 +1,68 @@
-import type { ApprovalEvent, CreateProjectInput, Project, ScriptSections, ScriptVersion, StylePreference } from "@/lib/contracts/domain";
+import type {
+  ApiErrorCode,
+  ApprovalEvent,
+  CreateProjectInput,
+  Project,
+  ScriptSections,
+  ScriptVersion,
+  StylePreference,
+  VideoJob,
+  VideoStartInput,
+} from "@/lib/contracts/domain";
 import { APTITUDE_CAPTION, APTITUDE_SCRIPT, APTITUDE_SOURCE, extractDemoFacts } from "@/lib/fixtures/aptitude";
-import { makeId, validateContentInput, validateScriptSections } from "@/lib/utils/client";
+import {
+  computeScriptContentHash,
+  hasInstructionalTemplateSections,
+  makeId,
+  validateContentInput,
+  validateScriptSections,
+} from "@/lib/utils/client";
 
 export interface NabdaService {
   listProjects(): Promise<Project[]>;
   getProject(id: string): Promise<Project | null>;
   createProject(data: CreateProjectInput): Promise<Project>;
   prepareDraft(projectId: string): Promise<{ project: Project; provenance: string }>;
-  reviseScript(projectId: string, sections: ScriptSections): Promise<Project>;
-  approveScript(projectId: string, versionId: string): Promise<Project>;
+  reviseScript(projectId: string, sections: ScriptSections, baseVersionId: string): Promise<Project>;
+  approveScript(projectId: string, versionId: string, expectedContentHash: string): Promise<Project>;
   listStylePreferences(): Promise<StylePreference[]>;
   saveStylePreference(rule: string): Promise<StylePreference[]>;
   toggleStylePreference(id: string): Promise<StylePreference[]>;
-  requestVideoRender(): Promise<never>;
+  requestVideoRender(input: VideoStartInput): Promise<VideoJob>;
 }
 
 const PROJECTS_KEY = "nabda-starter-projects-v1";
 const PREFS_KEY = "nabda-starter-style-v1";
 
-export class IntegrationNotConfiguredError extends Error {
-  constructor(message = "توليد الفيديو الفعلي غير متصل بالخادم في هذه النسخة.") {
+export class NabdaContractError extends Error {
+  readonly code: ApiErrorCode;
+  readonly retryable: boolean;
+
+  constructor(code: ApiErrorCode, message: string, retryable = false) {
     super(message);
+    this.name = "NabdaContractError";
+    this.code = code;
+    this.retryable = retryable;
+  }
+}
+
+export class IntegrationNotConfiguredError extends NabdaContractError {
+  constructor(message = "توليد الفيديو الفعلي غير متصل بالخادم في هذه النسخة.") {
+    super("INTEGRATION_NOT_CONFIGURED", message, false);
     this.name = "IntegrationNotConfiguredError";
   }
+}
+
+function normalizeStoredScriptVersion(raw: ScriptVersion): ScriptVersion {
+  const containsInstructionalPlaceholders =
+    typeof raw.containsInstructionalPlaceholders === "boolean"
+      ? raw.containsInstructionalPlaceholders
+      : hasInstructionalTemplateSections(raw.sections);
+  return {
+    ...raw,
+    contentHash: raw.contentHash || computeScriptContentHash(raw.sections),
+    containsInstructionalPlaceholders,
+  };
 }
 
 /**
@@ -32,8 +72,15 @@ export class IntegrationNotConfiguredError extends Error {
 export class LocalDevelopmentService implements NabdaService {
   private loadProjects(): Project[] {
     if (typeof window === "undefined") return [];
-    try { return JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]") as Project[]; }
-    catch { return []; }
+    try {
+      const parsed = JSON.parse(localStorage.getItem(PROJECTS_KEY) || "[]") as Project[];
+      return parsed.map(project => ({
+        ...project,
+        scripts: (project.scripts || []).map(normalizeStoredScriptVersion),
+      }));
+    } catch {
+      return [];
+    }
   }
   private saveProjects(projects: Project[]) {
     if (typeof window !== "undefined") localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
@@ -41,7 +88,7 @@ export class LocalDevelopmentService implements NabdaService {
   private updateProject(id: string, update: (project: Project) => Project): Project {
     const all = this.loadProjects();
     const index = all.findIndex(p => p.id === id);
-    if (index < 0) throw new Error("المشروع غير موجود في بيانات المتصفح.");
+    if (index < 0) throw new NabdaContractError("NOT_FOUND", "المشروع غير موجود في بيانات المتصفح.");
     const next = update(all[index]);
     all[index] = { ...next, updatedAt: new Date().toISOString() };
     this.saveProjects(all);
@@ -52,7 +99,7 @@ export class LocalDevelopmentService implements NabdaService {
   async createProject(data: CreateProjectInput): Promise<Project> {
     const validation = validateContentInput(data);
     if (!validation.valid) {
-      throw new Error(validation.sourceError || validation.audienceError || "بيانات المشروع غير مكتملة.");
+      throw new NabdaContractError("INVALID_INPUT", validation.sourceError || validation.audienceError || "بيانات المشروع غير مكتملة.");
     }
     const now = new Date().toISOString();
     const project: Project = {
@@ -75,39 +122,66 @@ export class LocalDevelopmentService implements NabdaService {
         body: preview,
         cta: "اكتب دعوة واضحة للتفاعل أو التطبيق…",
       };
+      const containsInstructionalPlaceholders = !isFixture && hasInstructionalTemplateSections(sections);
       const next: ScriptVersion = {
         id: makeId("sv"), projectId: p.id, version: p.scripts.length + 1, sections,
-        createdAt: new Date().toISOString(), origin: isFixture ? "development_fixture" : "manual",
+        contentHash: computeScriptContentHash(sections),
+        createdAt: new Date().toISOString(),
+        origin: isFixture ? "development_fixture" : "instructional_template",
+        containsInstructionalPlaceholders,
         sourceFactIds: isFixture ? ["fact_1", "fact_2", "fact_3"] : [],
       };
       return { ...p, facts: isFixture ? extractDemoFacts(p.source.text) : [],
         scripts: [...p.scripts, next], status: "script_ready",
         socialCaption: isFixture ? APTITUDE_CAPTION : "المنشور الاجتماعي يُنشأ تلقائيًا بعد ربط خدمة الذكاء الاصطناعي." };
     });
-    return { project, provenance: "Development fixture / Manual template — no AI API used" };
+    return { project, provenance: "Development fixture / Instructional template — no AI API used" };
   }
-  async reviseScript(id: string, sections: ScriptSections): Promise<Project> {
+  async reviseScript(id: string, sections: ScriptSections, baseVersionId: string): Promise<Project> {
+    if (!baseVersionId || !baseVersionId.trim()) {
+      throw new NabdaContractError("INVALID_INPUT", "يرجى تحديد معرف النسخة الأساسية قبل حفظ التعديل.");
+    }
     const sectionError = validateScriptSections(sections);
-    if (sectionError) throw new Error(sectionError);
+    if (sectionError) throw new NabdaContractError("INVALID_INPUT", sectionError);
     return this.updateProject(id, p => {
       const previous = p.scripts.at(-1);
-      if (!previous) throw new Error("يرجى إنشاء مسودة أولًا.");
+      if (!previous) throw new NabdaContractError("NOT_FOUND", "يرجى إنشاء مسودة أولًا.");
+      if (previous.id !== baseVersionId) {
+        throw new NabdaContractError("VERSION_CONFLICT", "تعارض في إصدار السكريبت: توجد نسخة أحدث من النسخة الأساسية المطلوب التعديل عليها.");
+      }
+      const nextSections: ScriptSections = { ...sections };
       const draft: ScriptVersion = {
         id: makeId("sv"), projectId: p.id, version: previous.version + 1,
-        sections: { ...sections }, createdAt: new Date().toISOString(), origin: "manual", sourceFactIds: previous.sourceFactIds,
+        sections: nextSections,
+        contentHash: computeScriptContentHash(nextSections),
+        createdAt: new Date().toISOString(),
+        origin: "manual",
+        containsInstructionalPlaceholders: hasInstructionalTemplateSections(nextSections),
+        sourceFactIds: previous.sourceFactIds,
       };
       return { ...p, scripts: [...p.scripts, draft], status: "script_ready" };
     });
   }
-  async approveScript(id: string, versionId: string): Promise<Project> {
+  async approveScript(id: string, versionId: string, expectedContentHash: string): Promise<Project> {
+    if (!expectedContentHash || !expectedContentHash.trim()) {
+      throw new NabdaContractError("INVALID_INPUT", "يرجى تمرير بصمة محتوى السكريبت المتوقعة قبل الاعتماد.");
+    }
     return this.updateProject(id, p => {
       const current = p.scripts.at(-1);
-      if (!current || current.id !== versionId) throw new Error("الإصدار المطلوب اعتماده ليس الإصدار الحالي.");
+      if (!current || current.id !== versionId) {
+        throw new NabdaContractError("VERSION_CONFLICT", "الإصدار المطلوب اعتماده ليس الإصدار الحالي.");
+      }
       const sectionError = validateScriptSections(current.sections);
-      if (sectionError) throw new Error(sectionError);
+      if (sectionError || current.containsInstructionalPlaceholders) {
+        throw new NabdaContractError("INVALID_INPUT", sectionError || "لا يمكن اعتماد قالب إرشادي غير محرّر.");
+      }
+      const actualHash = computeScriptContentHash(current.sections);
+      if (expectedContentHash !== actualHash) {
+        throw new NabdaContractError("CONTENT_HASH_MISMATCH", "محتوى السكريبت تغيّر عن البصمة المتوقعة؛ يرجى حفظ التعديلات أولًا.");
+      }
       const event: ApprovalEvent = {
         id: makeId("apr"), projectId: p.id, targetId: current.id,
-        kind: "script", decision: "approved", persistence: "local_demo", createdAt: new Date().toISOString(),
+        kind: "script", decision: "approved", contentHash: actualHash, persistence: "local_demo", createdAt: new Date().toISOString(),
       };
       return { ...p, approvals: [...p.approvals, event], status: "script_approved" };
     });
@@ -118,7 +192,7 @@ export class LocalDevelopmentService implements NabdaService {
   }
   async saveStylePreference(rule: string): Promise<StylePreference[]> {
     const clean = rule.trim();
-    if (clean.length < 8) throw new Error("يرجى كتابة قاعدة أسلوب واضحة (8 أحرف على الأقل).");
+    if (clean.length < 8) throw new NabdaContractError("INVALID_INPUT", "يرجى كتابة قاعدة أسلوب واضحة (8 أحرف على الأقل).");
     const list = await this.listStylePreferences();
     const next = [...list, { id: makeId("sty"), rule: clean, createdAt: new Date().toISOString(), origin: "manual_local" as const, enabled: true }];
     localStorage.setItem(PREFS_KEY, JSON.stringify(next));
@@ -129,7 +203,39 @@ export class LocalDevelopmentService implements NabdaService {
     localStorage.setItem(PREFS_KEY, JSON.stringify(next));
     return next;
   }
-  async requestVideoRender(): Promise<never> {
+  async requestVideoRender(input: VideoStartInput): Promise<VideoJob> {
+    if (
+      !input?.projectId ||
+      !input.scriptVersionId ||
+      !input.voiceId?.trim() ||
+      !input.templateId?.trim() ||
+      !input.expectedScriptHash?.trim()
+    ) {
+      throw new NabdaContractError("INVALID_INPUT", "بيانات طلب رندر الفيديو غير مكتملة (المشروع، النسخة، الصوت، القالب، أو بصمة السكريبت).");
+    }
+    const project = await this.getProject(input.projectId);
+    if (!project) {
+      throw new NabdaContractError("NOT_FOUND", "المشروع غير موجود في بيانات المتصفح.");
+    }
+    const current = project.scripts.at(-1);
+    const latestApproval = current
+      ? [...project.approvals]
+          .reverse()
+          .find(a => a.kind === "script" && a.decision === "approved" && a.targetId === current.id)
+      : undefined;
+    if (!current || current.id !== input.scriptVersionId || !latestApproval) {
+      throw new NabdaContractError("SCRIPT_NOT_APPROVED", "يجب اعتماد النسخة الحالية من السكريبت أولًا قبل طلب رندر الفيديو.");
+    }
+    if (current.containsInstructionalPlaceholders) {
+      throw new NabdaContractError("INVALID_INPUT", "لا يمكن بدء الرندر بنص إرشادي غير مكتمل.");
+    }
+    const currentHash = computeScriptContentHash(current.sections);
+    if (
+      input.expectedScriptHash !== currentHash ||
+      (latestApproval.contentHash && latestApproval.contentHash !== currentHash)
+    ) {
+      throw new NabdaContractError("CONTENT_HASH_MISMATCH", "بصمة السكريبت المطلوبة للرندر لا تطابق النسخة الحالية المعتمدة.");
+    }
     throw new IntegrationNotConfiguredError();
   }
 }
@@ -146,7 +252,7 @@ export class HttpNabdaService implements NabdaService {
   async listStylePreferences(): Promise<StylePreference[]> { return this.unimplemented(); }
   async saveStylePreference(): Promise<StylePreference[]> { return this.unimplemented(); }
   async toggleStylePreference(): Promise<StylePreference[]> { return this.unimplemented(); }
-  async requestVideoRender(): Promise<never> { return this.unimplemented(); }
+  async requestVideoRender(): Promise<VideoJob> { return this.unimplemented(); }
 }
 
 export function createNabdaService(): NabdaService {
