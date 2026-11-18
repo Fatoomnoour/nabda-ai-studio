@@ -36,8 +36,8 @@
 
 html {
   scroll-behavior: smooth;
-  max-width: 100%;
   overflow-x: clip;
+  overflow-y: auto;
 }
 
 body {
@@ -47,8 +47,7 @@ body {
   font-family: "IBM Plex Sans Arabic", Tahoma, sans-serif;
   font-size: 15px;
   line-height: 1.72;
-  max-width: 100%;
-  overflow-x: clip;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -109,10 +108,9 @@ p {
 
 /* App Shell & Sidebar */
 .app-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
   display: grid;
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
   direction: rtl;
@@ -345,7 +343,6 @@ p {
   min-width: 0;
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
   background: radial-gradient(900px 380px at 80% -200px, rgba(15, 107, 85, 0.14), transparent 70%), var(--bg);
 }
 
@@ -434,11 +431,23 @@ p {
 .content-wrap {
   max-width: var(--content-max);
   width: 100%;
+  min-width: 0;
   margin-inline: auto;
   padding: 20px clamp(16px, 2.5vw, 28px) 36px;
   min-height: calc(100dvh - 60px);
   display: flex;
   flex-direction: column;
+}
+
+.content-wrap > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.animate-in {
+  width: 100%;
+  min-width: 0;
+  animation: fadeUp 0.22s ease;
 }
 
 .main-footer {
@@ -448,7 +457,7 @@ p {
   justify-content: space-between;
   flex-wrap: wrap;
   padding-top: 28px;
-  padding-bottom: 6px;
+  padding-bottom: 16px;
   padding-inline-end: 48px;
   font-size: 11px;
   color: var(--soft);
@@ -457,10 +466,6 @@ p {
 .footer-dot {
   color: var(--gold);
   padding: 0 4px;
-}
-
-.animate-in {
-  animation: fadeUp 0.22s ease;
 }
 
 @keyframes fadeUp {
@@ -2545,12 +2550,12 @@ select.field-input {
   .studio-columns,
   .video-workspace,
   .home-bottom {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .studio-side {
     position: static;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
   }
 }
@@ -2625,13 +2630,13 @@ select.field-input {
   .review-grid,
   .memory-grid,
   .studio-side {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @media (max-width: 768px) {
   .video-preview-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .video-scene {
     justify-self: center;
@@ -2641,7 +2646,7 @@ select.field-input {
 
 @media (max-width: 650px) {
   .content-wrap {
-    padding: 16px 14px 18px;
+    padding: 16px 14px 32px;
   }
   .main-header {
     padding: 0 14px;
@@ -2663,10 +2668,47 @@ select.field-input {
   .go-next {
     white-space: normal;
   }
+  .vh > div,
+  .surface,
+  .metric-card,
+  .home-projects,
+  .process-card,
+  .block-title > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .block-title,
+  .projects-footer {
+    flex-wrap: wrap;
+  }
+  .process-footer {
+    align-items: flex-start;
+  }
+  .process-footer svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .pipe-step-label,
+  .metric-top,
+  .metric-card > small,
+  .pipe-sub {
+    overflow-wrap: break-word;
+  }
+  .project-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .project-info strong {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    overflow-wrap: break-word;
+  }
   .home-mode-grid,
   .mode-cards-grid,
   .version-comparison {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .metrics-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2832,6 +2874,15 @@ select.field-input {
    ========================================================================== */
 
 .app-shell[dir="ltr"] {
+  direction: ltr;
+}
+
+.app-shell[dir="ltr"] .project-row,
+.app-shell[dir="ltr"] .home-mode-btn,
+.app-shell[dir="ltr"] .mode-card,
+.app-shell[dir="ltr"] .workflow-step,
+.app-shell[dir="ltr"] .field-input {
+  text-align: left;
   direction: ltr;
 }
 
