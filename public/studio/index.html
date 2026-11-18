@@ -240,7 +240,7 @@ let API=false,TTSAPI=false;
 (async()=>{try{const r=await fetch('/api/health',{cache:'no-store'});const j=r.ok?await r.json():{};API=!!j.ok;TTSAPI=!!j.tts}catch(e){}})();
 const hasAI=()=>!!(sample||API);
 async function ai(prompt,opts={}){if(sample)return sample(prompt,opts);if(!API)throw{code:'no_ai'};
- const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt,tier:opts.modelTier||'default'})});
+ let r;for(let k=0;k<3;k++){r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt,tier:opts.modelTier||'default'})});if(r.ok||![429,500,502,503,504].includes(r.status))break;await new Promise(res=>setTimeout(res,1500*(k+1)+Math.random()*800))}
  if(!r.ok){let m='';try{m=(await r.json()).error}catch(e){}throw{code:r.status===429?'rate_limited':'api',message:m}}
  const rd=r.body.getReader(),dec=new TextDecoder();let acc='';for(;;){const {done,value}=await rd.read();if(done)break;acc+=dec.decode(value,{stream:true});opts.onText&&opts.onText({text:acc})}return{text:acc}}
 ai.json=async(prompt,opts={})=>{if(sample)return sample.json(prompt,opts);const r=await ai(prompt+'\nأعد JSON صالحًا فقط بدون أي نص قبله أو بعده.',opts);const m=r.text.match(/\{[\s\S]*\}/);return JSON.parse(m?m[0]:r.text)};
@@ -302,15 +302,16 @@ async function runSwarm(){
  await Promise.all(jobs);
  const parts=S.plan?.parts||[];if(parts.length){$('planBox').innerHTML='<div class="note" style="margin-bottom:6px">خطة المنهج</div>'+parts.map((x,i)=>`<div class="fact" style="${i?'':'border-color:var(--gold)'}"><span class="n" style="background:${i?'var(--p2)':'var(--gold)'};color:${i?'var(--mu)':'var(--g)'}">${x.week}</span><span>${esc(x.title)}${i?'':' · يعمل الآن'}</span></div>`).join('');text=parts[0].text||text}
  renderFacts('factsList');pipe(2);
- await Promise.all([...AGENTS.map(a=>runAgent(a,text)),ai(`اكتب منشور تويتر عن النص التالي:\n${text}`,{modelTier:'default'}).then(r=>S.generic=r.text).catch(()=>S.generic=DEMO.generic)]);
+ await Promise.all([...AGENTS.map(a=>runAgent(a,text)),ai(`اكتب منشور تويتر عن النص التالي:\n${text}`,{modelTier:'default'}).then(r=>S.generic=r.text).catch(()=>S.generic=isSampleSrc()?DEMO.generic:'')]);
  pipe(3);await runChecker(text);pipe(5);stopTimer();S.ready=true;$('toStudio').disabled=false}
 async function runAgent(a,text){setSt(a.id,'run','يكتب…');
  try{const r=await ai(ctx(text)+'\n\nالمهمة: '+a.ask,{modelTier:'default',onText:({text:t})=>$('out-'+a.id).textContent=t});S.res[a.id]=r.text.trim();$('out-'+a.id).textContent=S.res[a.id];setSt(a.id,'ok','جاهز ✓')}
- catch(e){S.res[a.id]=DEMO[a.id];$('out-'+a.id).textContent=DEMO[a.id];setSt(a.id,'err','نسخة محفوظة')}}
+ catch(e){if(isSampleSrc()){S.res[a.id]=DEMO[a.id];$('out-'+a.id).textContent=DEMO[a.id];setSt(a.id,'err','نسخة محفوظة')}else{S.res[a.id]='';$('out-'+a.id).textContent='تعذّر توليد هذه الصيغة الآن (ضغط على الخادم). أعد تشغيل الحملة بعد لحظات.';setSt(a.id,'err','تعذّر')}}}
+function isSampleSrc(){return $('src').value.replace(/\s+/g,'')===SAMPLE.replace(/\s+/g,'')}
 async function runChecker(text){$('checker').style.display='block';$('checkOut').textContent='يراجع اللهجة والحقائق…';
- try{const all=AGENTS.map(a=>`[${a.name}]\n${S.res[a.id]}`).join('\n\n');
+ try{const all=AGENTS.filter(a=>S.res[a.id]).map(a=>`[${a.name}]\n${S.res[a.id]}`).join('\n\n');
   const r=await ai(`أنت مدقّق لغوي سعودي ومدقّق حقائق. لكل مخرج اكتب سطرًا: اسمه ثم ✓ إن كانت اللهجة طبيعية وكل معلومة موجودة في المصدر، أو ⚠ مع الملاحظة. ثم سطر "الخلاصة".\nالمصدر:\n"""${text}"""\n\nالمخرجات:\n${all}`,{modelTier:'default',onText:({text:t})=>$('checkOut').textContent=t});$('checkOut').textContent=r.text}
- catch(e){$('checkOut').textContent=DEMO.check}}
+ catch(e){$('checkOut').textContent=isSampleSrc()?DEMO.check:'تعذّر تشغيل المدقّق الآن. راجع المخرجات يدويًا أو أعد التشغيل.'}}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function runDemo(){
  if(S.mode==='scheduled')$('planBox').innerHTML='<div class="note" style="margin-bottom:6px">خطة المنهج</div>'+['مفهوم التناظر اللفظي','الجزء والكل والفئة','الضد والترادف والدرجة','السبب والنتيجة والوظيفة','اختبار تجريبي'].map((t,i)=>`<div class="fact" style="${i?'':'border-color:var(--gold)'}"><span class="n" style="background:${i?'var(--p2)':'var(--gold)'};color:${i?'var(--mu)':'var(--g)'}">${i+1}</span><span>${t}${i?'':' · يعمل الآن'}</span></div>`).join('');
