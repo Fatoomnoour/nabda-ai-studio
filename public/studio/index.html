@@ -160,7 +160,7 @@ mark{background:rgba(63,209,168,.18);color:var(--tx);border-radius:4px;padding:0
         <div class="row between"><h3 style="font-size:16px">١ · المصدر</h3><button class="btn dark sm" onclick="loadSample()">✦ مثال: دورة القدرات</button></div>
         <div class="srcs" style="margin-top:12px"><button class="src on">نص</button><label class="src">ملف .txt<input type="file" accept=".txt,.md" hidden onchange="readFile(this)"></label><span class="src" title="عن طريق إضافة كروم">رابط خبر (من الإضافة)</span></div>
         <textarea id="src" placeholder="الصق نص الدرس أو الخبر هنا…"></textarea>
-        <p class="note" style="margin:8px 0 0">🔒 لا نخزّن المصدر على خوادمنا ولا نستخدمه في تدريب النماذج.</p>
+        <p class="note" style="margin:8px 0 0">🔒 النص يُرسل إلى مزوّد النموذج لتوليد المحتوى، ولا نحفظه في قاعدة بيانات نبضة. راجع سياسة المزوّد قبل رفع محتوى سري.</p>
         <div id="schedBox" class="grid2" style="display:none"><div><label class="f">عدد الأسابيع</label><input type="number" id="weeks" value="5" min="1" max="12"></div><div><label class="f">تاريخ البداية</label><input type="date" id="startDate"></div></div>
       </div>
       <div class="card">
@@ -200,7 +200,7 @@ mark{background:rgba(63,209,168,.18);color:var(--tx);border-radius:4px;padding:0
         <label class="f" style="margin-top:14px">المصدر · اضغط حقيقة لتراها في النص</label>
         <div class="facts" id="factsMini" style="margin-bottom:8px"></div>
         <div class="srcbox" id="srcView"></div>
-        <div style="margin-top:10px"><span class="ai">● إفصاح: أُنتج بمساعدة الذكاء الاصطناعي وراجعه إنسان</span></div>
+        <div style="margin-top:10px"><span class="ai" id="aiBadge">● مسودة مولّدة بالذكاء الاصطناعي · بانتظار المراجعة</span></div>
         <label class="f" style="margin-top:14px">سجل الاعتماد · المساءلة</label><input type="text" id="approver" value="محرر الفريق" style="padding:8px 12px;font-size:14px"><div class="facts" id="logBox" style="margin-top:8px"><span class="note">لم يُعتمد شيء بعد</span></div>
       </div></div>
     </div>
@@ -300,7 +300,7 @@ async function runSwarm(){
  if(S.mode==='scheduled')jobs.push(ai.json(`قسّم المنهج إلى ${$('weeks').value} أجزاء أسبوعية. أعد JSON فقط: {"parts":[{"week":1,"title":"عنوان قصير","text":"نص الجزء كما ورد"}]}. لا تخترع محتوى.\n\n${text}`,{modelTier:'quick'}).then(r=>S.plan=r).catch(()=>{}));
  jobs.push(ai.json(`استخرج من المصدر التالي من 4 إلى 6 حقائق أساسية يمكن بناء محتوى عليها. لكل حقيقة: صياغة قصيرة، واقتباس حرفي مطابق تمامًا لجزء من المصدر. أعد JSON فقط: {"facts":[{"fact":"...","quote":"نص منسوخ حرفيًا من المصدر"}]}.\n\nالمصدر:\n"""${text}"""`,{modelTier:'default'}).then(r=>S.facts=(r?.facts||[]).slice(0,6)).catch(()=>{}));
  await Promise.all(jobs);
- const parts=S.plan?.parts||[];if(parts.length){$('planBox').innerHTML='<div class="note" style="margin-bottom:6px">خطة المنهج</div>'+parts.map((x,i)=>`<div class="fact" style="${i?'':'border-color:var(--gold)'}"><span class="n" style="background:${i?'var(--p2)':'var(--gold)'};color:${i?'var(--mu)':'var(--g)'}">${x.week}</span><span>${esc(x.title)}${i?'':' · يعمل الآن'}</span></div>`).join('');text=parts[0].text||text}
+ const parts=S.plan?.parts||[];if(parts.length){$('planBox').innerHTML='<div class="note" style="margin-bottom:6px">خطة المنهج</div>'+parts.map((x,i)=>`<div class="fact" style="${i?'':'border-color:var(--gold)'}"><span class="n" style="background:${i?'var(--p2)':'var(--gold)'};color:${i?'var(--mu)':'var(--g)'}">${esc(String(Math.min(52,Math.max(1,parseInt(x.week,10)||i+1))))}</span><span>${esc(x.title)}${i?'':' · يعمل الآن'}</span></div>`).join('');text=parts[0].text||text}
  renderFacts('factsList');pipe(2);
  await Promise.all([...AGENTS.map(a=>runAgent(a,text)),ai(`اكتب منشور تويتر عن النص التالي:\n${text}`,{modelTier:'default'}).then(r=>S.generic=r.text).catch(()=>S.generic=isSampleSrc()?DEMO.generic:'')]);
  pipe(3);await runChecker(text);pipe(5);stopTimer();S.ready=true;$('toStudio').disabled=false}
@@ -323,7 +323,7 @@ async function runDemo(){
 const lines=t=>String(t||'').split('\n').map(s=>s.replace(/^[\s\-•*·\d\.\)\(]+/,'').trim()).filter(Boolean);
 function parseSlides(t){return lines(t).map(l=>{const [a,...b]=l.split('|');return{t:(a||'').trim(),s:b.join('|').trim()}}).filter(x=>x.t).slice(0,6)}
 function parseQuiz(t){return String(t||'').split(/\n\s*\n/).map(b=>{const L=b.split('\n').map(s=>s.trim()).filter(Boolean);if(L.length<3)return null;const q=L[0].replace(/^(س\d*[\)\.:]?|\d+[\)\.])\s*/,'');const opts=L.slice(1,5).map(o=>({c:o.startsWith('*'),t:o.replace(/^\*\s*/,'').replace(/^[أبجد][\)\.]\s*/,'')}));return{q,opts}}).filter(Boolean)}
-function parsePosts(t){const T=String(t||'');const list=[];const re=/\[([^\]]+)\]/g;let mm,last=null;while((mm=re.exec(T))){if(last)list.push({k:last.k,t:T.slice(last.e,mm.index).trim()});last={k:mm[1].trim(),e:re.lastIndex}}if(last)list.push({k:last.k,t:T.slice(last.e).trim()});const x=(list.find(i=>i.k==='X')||{}).t||(list[0]||{}).t||T.slice(0,240);return{x,list}}
+function parsePosts(t){const T=String(t||'');const list=[];const re=/\[([^\]]+)\]/g;let mm,last=null;while((mm=re.exec(T))){if(last)list.push({k:last.k,t:T.slice(last.e,mm.index).trim()});last={k:mm[1].trim(),e:re.lastIndex}}if(last)list.push({k:last.k,t:T.slice(last.e).trim()});const x=(list.find(i=>i.k==='X')||{}).t||'';return{x,list}}
 
 /* ---------- canvas helpers ---------- */
 const C={g:'#0B2A2B',g2:'#0F6B55',gold:'#D4B06A',mint:'#3FD1A8',sand:'#F6F3EC'};
@@ -343,7 +343,7 @@ function drawSlide(cv,sl,i,n){const W=1080,H=1350;cv.width=W;cv.height=H;const x
  for(const l of wrap(x,sl.t,W-180)){x.fillText(l,W-90,y);y+=first?170:146}
  x.fillStyle=C.gold;x.fillRect(W-90-180,y-30,180,10);y+=70;
  setFont(x,500,60,'b');x.fillStyle=first||last?'#C9DAD5':'#38504B';for(const l of wrap(x,sl.s,W-180)){x.fillText(l,W-90,y);y+=88}
- setFont(x,600,34,'b');x.fillStyle=first||last?C.mint:C.g2;x.fillText(last?'احفظ ↓ وشارك':'اسحب ←',W-90,H-110);x.textAlign='left';x.fillStyle=first||last?'#8FB3AA':'#7A8984';x.fillText('@qudurat_academy',90,H-110);
+ setFont(x,600,34,'b');x.fillStyle=first||last?C.mint:C.g2;x.fillText(last?'احفظ ↓ وشارك':'اسحب ←',W-90,H-110);x.textAlign='left';
  sadu(x,W,H-40,40)}
 
 /* ---------- reel (video) ---------- */
@@ -354,7 +354,7 @@ function drawReel(t){const cv=R.cv,x=cv.getContext('2d'),W=cv.width,H=cv.height;
  const bg=x.createLinearGradient(0,0,0,H);bg.addColorStop(0,i%2?'#0F3A3A':C.g);bg.addColorStop(1,'#071D1E');x.fillStyle=bg;x.fillRect(0,0,W,H);
  const gr=x.createRadialGradient(W*(.2+.6*((i%3)/2)),H*.3,10,W*.5,H*.3,W);gr.addColorStop(0,'rgba(63,209,168,.22)');gr.addColorStop(1,'rgba(63,209,168,0)');x.fillStyle=gr;x.fillRect(0,0,W,H);
  pulse(x,W,H*.2,Math.min(1,lt/.9),'rgba(63,209,168,.55)',6);
- logo(x,W-200,70,.55);setFont(x,600,30,'b');x.fillStyle=C.gold;x.textAlign='left';x.fillText('القدرات · اللفظي',60,118);
+ logo(x,W-200,70,.55);setFont(x,600,30,'b');x.fillStyle=C.gold;x.textAlign='left';x.fillText('نبضة · حملة',60,118);
  const ap=Math.min(1,lt/.45),ease=1-Math.pow(1-ap,3);x.globalAlpha=ap;x.textAlign='right';const isHook=i===0,isEnd=i===R.scenes.length-1;
  setFont(x,800,isHook?92:78,'h');x.fillStyle=isEnd?C.gold:C.sand;const L=wrap(x,R.scenes[i],W-140);let y=H*.5-(L.length-1)*50+(1-ease)*40;
  for(const l of L){x.fillText(l,W-70,y);y+=isHook?110:96}
@@ -381,8 +381,8 @@ function exportReel(){if(!R.cv.captureStream||!window.MediaRecorder){toast('تص
 /* ---------- studio ---------- */
 const TABS=[{id:'video',n:'🎬 الفيديو'},{id:'posts',n:'✍ المنشورات'},{id:'slides',n:'🖼 الصور'},{id:'quiz',n:'❓ الكويز'},{id:'voice',n:'🎙 الصوت'},{id:'cmp',n:'⚖ نبضة مقابل أداة عامة'}];
 const APPR=TABS.filter(t=>t.id!=='cmp');
-function renderTabs(){$('pkgTabs').innerHTML=TABS.map(t=>`<button class="tab ${S.cur===t.id?'on':''}" onclick="openTab('${t.id}')">${t.n} ${S.approved[t.id]?'<span class="ck">✓</span>':''}</button>`).join('');$('apprCount').textContent=`معتمد ${Object.keys(S.approved).length} من ${APPR.length}`}
-async function openTab(id){if($('pkgEdit').dataset.k&&S.cur!=='cmp')S.res[S.cur]=$('pkgEdit').value;S.cur=id;R.playing=false;try{tts&&tts.stop()}catch(e){}
+function renderTabs(){setTimeout(badge,0);$('pkgTabs').innerHTML=TABS.map(t=>`<button class="tab ${S.cur===t.id?'on':''}" onclick="openTab('${t.id}')">${t.n} ${S.approved[t.id]?'<span class="ck">✓</span>':''}</button>`).join('');$('apprCount').textContent=`معتمد ${Object.keys(S.approved).length} من ${APPR.length}`}
+async function openTab(id){if($('pkgEdit').dataset.k&&S.cur!=='cmp')setRes(S.cur,$('pkgEdit').value);try{window.__nbAudio&&window.__nbAudio.pause();window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}S.cur=id;R.playing=false;try{tts&&tts.stop()}catch(e){}
  const ed=id!=='cmp';$('pkgEdit').style.display=ed?'block':'none';$('pkgEdit').value=ed?(S.res[id]||''):'';$('pkgEdit').dataset.k=id;$('sideTitle').textContent=TABS.find(t=>t.id===id).n;$('apprState').textContent=S.approved[id]?'معتمد ✓':'';renderTabs();renderFacts('factsMini');renderSrc();renderLog();
  try{await document.fonts.load("800 40px 'Alexandria'");await document.fonts.load("500 40px 'IBM Plex Sans Arabic'")}catch(e){}renderStage()}
 function renderStage(){const id=S.cur,st=$('stage'),t=S.res[id];
@@ -390,24 +390,26 @@ function renderStage(){const id=S.cur,st=$('stage'),t=S.res[id];
  if(id==='slides'){const sl=parseSlides(t);st.innerHTML=`<div style="width:100%"><div class="slides" id="slGrid"></div><div class="row" style="justify-content:center;margin-top:14px"><button class="btn gold sm" onclick="dlAll()">⬇ تحميل الصور PNG</button></div></div>`;
   sl.forEach((s,i)=>{const d=document.createElement('div');d.className='slideimg';const cv=document.createElement('canvas');d.appendChild(cv);drawSlide(cv,s,i,sl.length);const a=document.createElement('a');a.textContent='⬇ PNG';a.href='#';a.onclick=e=>{e.preventDefault();dl(cv,`nabda-slide-${i+1}.png`)};d.appendChild(a);$('slGrid').appendChild(d)});return}
  if(id==='posts'){const p=parsePosts(t);st.innerHTML=`<div style="display:flex;flex-direction:column;gap:12px;width:100%;align-items:center">
-  <div class="xcard"><div class="who"><div class="av">ج</div><div><b>حساب الجهة</b> <span style="color:#536471;font-size:13px">معاينة قبل النشر</span></div></div><div style="white-space:pre-wrap;font-size:16px">${esc(p.x)}</div><div style="color:#536471;font-size:12px;margin-top:8px">X · ${p.x.length} حرف</div></div>
+  ${p.x?`<div class="xcard"><div class="who"><div class="av">ج</div><div><b>حساب الجهة</b> <span style="color:#536471;font-size:13px">معاينة قبل النشر</span></div></div><div style="white-space:pre-wrap;font-size:16px">${esc(p.x)}</div><div style="color:#536471;font-size:12px;margin-top:8px">X · ${p.x.length} حرف</div></div>`:''}
   ${p.list.filter(x=>x.k!=='X').map(x=>`<div class="xcard"><b>${esc(x.k)}</b><div style="white-space:pre-wrap">${esc(x.t)}</div></div>`).join('')}</div>`;return}
  if(id==='quiz'){const Q=parseQuiz(t);st.innerHTML=`<div class="quiz">${Q.map((q,qi)=>`<div style="margin-bottom:16px"><b>${qi+1}. ${esc(q.q)}</b>${q.opts.map(o=>`<button class="qopt" data-c="${o.c?1:0}" onclick="ans(this)">${esc(o.t)}</button>`).join('')}</div>`).join('')}<div style="font-size:12.5px;color:#5B6762">جرّب تجاوب: هكذا يظهر للطالب.</div></div>`;return}
  if(id==='voice'){const L=lines(t);st.innerHTML=`<div style="width:100%;max-width:560px"><div class="row" style="margin-bottom:16px"><button class="btn" onclick="playVoice()">▶ استمع</button><button class="btn dark sm" onclick="try{tts&&tts.stop()}catch(e){};window.__nbAudio&&__nbAudio.pause();window.speechSynthesis&&speechSynthesis.cancel()">■ إيقاف</button><span class="note">${tts?'صوت Claude':TTSAPI?'صوت Gemini':'صوت المتصفح'} · المنتج النهائي: صوت سعودي (ElevenLabs)</span></div><div id="vlines">${L.map((l,i)=>`<p id="vl${i}" style="margin:6px 0;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.05)">${esc(l)}</p>`).join('')}</div></div>`;return}
- if(id==='cmp'){const p=parsePosts(S.res.posts);st.innerHTML=`<div style="width:100%"><div class="cmp"><div class="col"><h4 style="color:var(--mu)">أداة عامة · "اكتب منشور تويتر عن النص"</h4><div class="txt">${esc(S.generic||'—')}</div><div class="note" style="margin-top:8px">${S.demo?'مثال توضيحي محفوظ':'نفس النموذج بأمر عام، بدون طبقة نبضة'}</div></div><div class="col n"><h4 style="color:var(--mint)">نبضة · نفس المصدر</h4><div class="txt">${esc(p.x)}</div></div></div>
+ if(id==='cmp'){const p=parsePosts(S.res.posts);if(!p.x)p.x=(p.list[0]||{}).t||'';st.innerHTML=`<div style="width:100%"><div class="cmp"><div class="col"><h4 style="color:var(--mu)">أداة عامة · "اكتب منشور تويتر عن النص"</h4><div class="txt">${esc(S.generic||'—')}</div><div class="note" style="margin-top:8px">${S.demo?'مثال توضيحي محفوظ':'نفس النموذج بأمر عام، بدون طبقة نبضة'}</div></div><div class="col n"><h4 style="color:var(--mint)">نبضة · نفس المصدر</h4><div class="txt">${esc(p.x)}</div></div></div>
  <div class="chk card" style="margin-top:14px"><b style="color:var(--tx)">ما الذي تضيفه طبقة نبضة؟</b><div>✓ لهجة الجمهور المحددة (${esc(S.dialect)}) بدل لغة عامة</div><div>✓ ${S.facts.length} حقائق مستخرجة، وكل مخرج مقيّد بها ومربوط بمصدرها</div><div>✓ طول وصيغة كل منصة، ووسوم مناسبة</div><div>✓ مدقّق لهجة وحقائق، ثم اعتماد بشري ووسم إفصاح</div><div class="note" style="margin-top:6px">احكم بنفسك: المقارنة تعرض المخرجين كما هما.</div></div></div>`;return}}
 function ans(b){const c=b.dataset.c==='1';b.classList.add(c?'right':'wrong');if(!c){const r=[...b.parentNode.querySelectorAll('.qopt')].find(x=>x.dataset.c==='1');r&&r.classList.add('right')}}
 async function playVoice(){const L=lines(S.res.voice);if(tts){try{tts.onLine&&tts.onLine(({id})=>{document.querySelectorAll('#vlines p').forEach(p=>p.style.background='rgba(255,255,255,.05)');const e=$(id);e&&(e.style.background='rgba(63,209,168,.25)')});await tts.speak(L.map((t,i)=>({text:t,id:'vl'+i})));return}catch(e){}}speakLines(L)}
 function dl(cv,name){cv.toBlob(b=>saveFile(name,b),'image/png')}
 async function dlAll(){const cvs=[...document.querySelectorAll('#slGrid canvas')];for(let i=0;i<cvs.length;i++){const b=await new Promise(r=>cvs[i].toBlob(r,'image/png'));await saveFile(`nabda-slide-${i+1}.png`,b)}}
-function applyEdit(){if(S.cur==='cmp')return;S.res[S.cur]=$('pkgEdit').value;delete S.approved[S.cur];$('apprState').textContent='';renderTabs();renderStage()}
+function badge(){const b=document.getElementById('aiBadge');if(!b)return;const a=S.approved&&S.approved[S.cur];b.textContent=a?'● أُنتج بمساعدة الذكاء الاصطناعي · راجعه: '+a:'● مسودة مولّدة بالذكاء الاصطناعي · بانتظار المراجعة'}
+function setRes(id,v){if(id==='cmp'||v===undefined)return;if((S.res[id]||'')!==v){S.res[id]=v;if(S.approved[id]){delete S.approved[id];(S.log=S.log||[]).push({k:id,who:'—',at:new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}),voided:true});renderLog&&renderLog()}}}
+function applyEdit(){if(S.cur==='cmp')return;setRes(S.cur,$('pkgEdit').value);$('apprState').textContent='';renderTabs();renderStage();badge()}
 function renderLog(){const L=S.log||[];$('logBox').innerHTML=L.length?L.slice().reverse().map(e=>`<div class="fact"><span class="n">✓</span><span>${esc(TABS.find(t=>t.id===e.k).n)} · اعتمده <b>${esc(e.who)}</b> · ${e.at}</span></div>`).join(''):'<span class="note">لم يُعتمد شيء بعد</span>'}
-function approve(){if(S.cur==='cmp'){toast('هذه مقارنة للعرض فقط');return}applyEdit();const who=($('approver').value||'محرر الفريق').trim();S.approved[S.cur]=who;(S.log=S.log||[]).push({k:S.cur,who,at:new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'})});renderLog();$('apprState').textContent='معتمد ✓';renderTabs();const n=APPR.find(t=>!S.approved[t.id]);if(n)setTimeout(()=>openTab(n.id),450);else toast('الحملة كلها معتمدة ✓')}
+function approve(){if(S.cur==='cmp'){toast('هذه مقارنة للعرض فقط');return}if(!$('pkgEdit').value.trim()){toast('لا يمكن اعتماد مخرج فارغ. أعد توليده أولًا');return}applyEdit();const who=($('approver').value||'محرر الفريق').trim();S.approved[S.cur]=who;(S.log=S.log||[]).push({k:S.cur,who,at:new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'})});renderLog();$('apprState').textContent='معتمد ✓';renderTabs();badge();const n=APPR.find(t=>!S.approved[t.id]);if(n)setTimeout(()=>openTab(n.id),450);else toast('الحملة كلها معتمدة ✓')}
 async function redo(how){if(S.cur==='cmp')return;if(!hasAI()){toast('إعادة التوليد تحتاج اتصالًا بالذكاء الاصطناعي');return}const a=AGENTS.find(x=>x.id===S.cur);$('apprState').textContent='يعيد الكتابة…';
- try{const r=await ai(ctx($('src').value)+'\n\nالمهمة: '+a.ask+'\nالنسخة الحالية:\n'+$('pkgEdit').value+'\nأعد كتابتها لتكون '+how+' بنفس الصيغة.',{modelTier:'default',onText:({text:t})=>$('pkgEdit').value=t});S.res[S.cur]=r.text.trim();$('pkgEdit').value=S.res[S.cur];$('apprState').textContent='نسخة جديدة';renderStage()}catch(e){$('apprState').textContent='تعذّر، حاول مرة أخرى'}}
+ try{const r=await ai(ctx($('src').value)+'\n\nالمهمة: '+a.ask+'\nالنسخة الحالية:\n'+$('pkgEdit').value+'\nأعد كتابتها لتكون '+how+' بنفس الصيغة.',{modelTier:'default',onText:({text:t})=>$('pkgEdit').value=t});setRes(S.cur,r.text.trim());$('pkgEdit').value=S.res[S.cur];$('apprState').textContent='نسخة جديدة · تحتاج مراجعة';renderTabs();renderStage();badge()}catch(e){$('apprState').textContent='تعذّر، حاول مرة أخرى'}}
 
 /* ---------- calendar ---------- */
-function toCal(){if($('pkgEdit').dataset.k&&S.cur!=='cmp')S.res[S.cur]=$('pkgEdit').value;const weeks=S.mode==='scheduled'?(+$('weeks').value||5):1;const start=new Date($('startDate').value||Date.now());
+function toCal(){if($('pkgEdit').dataset.k&&S.cur!=='cmp')setRes(S.cur,$('pkgEdit').value);const weeks=S.mode==='scheduled'?(+$('weeks').value||5):1;const start=new Date($('startDate').value||Date.now());
  const days=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس'];const slot=[['🎬 ريل','video'],['🖼 كاروسيل','slides'],['❓ كويز','quiz'],['✍ X + لينكدإن','posts'],['🎙 مقطع صوتي','voice']];
  const titles=(S.plan?.parts||[]).map(p=>p.title),def=['مفهوم التناظر اللفظي','الجزء والكل والفئة','الضد والترادف والدرجة','السبب والنتيجة والوظيفة','اختبار تجريبي ومراجعة'];
  let h='<div class="h">الأسبوع</div>'+days.map(d=>`<div class="h">${d}</div>`).join('');

@@ -6,8 +6,9 @@ export const maxDuration = 60;
 export async function GET(request: Request) {
   const provider = activeProvider();
   const body: Record<string, unknown> = { ok: provider !== null, provider, tts: ttsAvailable() };
-  // ?probe=1 → one tiny live generation to report which model answered and how fast.
-  if (provider && new URL(request.url).searchParams.get("probe") === "1") {
+  // ?probe=<HEALTH_PROBE_TOKEN> → one tiny (billable, so it needs the secret token; public checks only report config) live generation to report which model answered and how fast.
+  const probeToken = process.env.HEALTH_PROBE_TOKEN;
+  if (provider && probeToken && new URL(request.url).searchParams.get("probe") === probeToken) {
     const t0 = Date.now();
     const res = await streamText("قل: هلا", "quick");
     const text = (await res.text()).slice(0, 80);

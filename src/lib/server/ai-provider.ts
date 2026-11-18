@@ -156,7 +156,8 @@ function thinkingFor(model: string): Record<string, unknown> {
 
 async function upstreamError(upstream: Response): Promise<Response> {
   const detail = (await upstream.text()).slice(0, 300);
-  return Response.json({ error: "UPSTREAM_ERROR", status: upstream.status, detail }, { status: 502 });
+  console.error("UPSTREAM_ERROR", upstream.status, detail);
+  return Response.json({ error: "UPSTREAM_ERROR", status: upstream.status }, { status: 502 });
 }
 
 /** Gemini TTS → 16-bit PCM 24 kHz mono, wrapped as WAV so the browser can play it. */

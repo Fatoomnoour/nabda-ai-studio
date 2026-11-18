@@ -108,3 +108,11 @@ Requested by the Project Lead (Fatma) on branch `feat/live-studio-gemini`. Froze
 ## v0.1.0 — Phase 0.8: Frontend starter (2026-11-17)
 
 - Created Next.js App Router + TypeScript + Tailwind starter scaffold with untouched `docs/references/leader-prototype.html` and `public/brand/nabda-logo.png`.
+
+## 2026-11-18 — audit fixes (studio)
+- Approval is tied to the text: any edit, tab switch, redo or calendar save that changes it voids the approval (kept in the log as voided); empty outputs can't be approved.
+- AI "week" value is sanitised and escaped before rendering (no raw HTML from model output).
+- `/api/health?probe=` now needs `HEALTH_PROBE_TOKEN`; upstream error details go to server logs, not the client.
+- Removed leftover @qudurat_academy / "القدرات · اللفظي" from slide and reel templates; X card only appears when an X post exists.
+- Disclosure badge reflects real state (draft until approved); privacy line and FAQ updated to the actual behaviour.
+- Still open: shared rate limit (use Vercel Firewall rate limiting), partial-success state per format, mobile swarm/calendar layout, shorter intro.
