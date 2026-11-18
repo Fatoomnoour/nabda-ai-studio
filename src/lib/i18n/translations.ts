@@ -45,6 +45,7 @@ export const LANDING_EN = {
     { href: "#features", label: "Features" },
     { href: "#vision", label: "Vision" },
   ],
+  teamLink: "Team",
   hero: {
     eyebrow: "NABDA AI · Arabic-First Content Studio",
     titleLine1: "From one source… to a full campaign",
@@ -282,6 +283,81 @@ export const LANDING_EN = {
     copyright: "© 2026 NABDA AI",
   },
 };
+
+export const TEAM_COPY = {
+  ar: {
+    eyebrow: "فريق نبضة · Saudi MIB 2027",
+    title: "العقول خلف نبضة",
+    lead: "فريق متكامل يجمع الخبرة التعليمية، والهندسة البرمجية، وتصميم التجارب التفاعلية لبناء مساحة محتوى عربية أقرب لجمهورك.",
+    homeLink: "الرئيسية",
+    workspaceLink: "مساحة العمل",
+    navAria: "التنقل الرئيسي",
+    membersAria: "أعضاء فريق نبضة",
+    trackBadge: "Saudi MIB 2027 · المسار الثاني (Track 02)",
+    ctaTitle: "جرّب مساحة عمل نبضة الآن",
+    ctaPrimary: "ادخل مساحة العمل",
+    ctaSecondary: "العودة للصفحة الرئيسية",
+    members: [
+      {
+        id: "fatima",
+        initials: "فن",
+        name: "فاطمة نور",
+        role: "المنتج والتدريب",
+        bio: "تطوير الفكرة وإعداد المحتوى والخبرة التعليمية",
+      },
+      {
+        id: "osama",
+        initials: "أر",
+        name: "أسامة ربيع",
+        role: "التقنية",
+        bio: "الهندسة البرمجية والتكاملات وبناء سير العمل",
+      },
+      {
+        id: "noura",
+        initials: "نس",
+        name: "نورا السمان",
+        role: "التفاعل والتلعيب",
+        bio: "تصميم التجارب التفاعلية وقياس مشاركة الجمهور",
+      },
+    ],
+  },
+  en: {
+    eyebrow: "NABDA Team · Saudi MIB 2027",
+    title: "The People Behind NABDA",
+    lead: "A multidisciplinary team combining educational expertise, software engineering, and interactive experience design to build an Arabic-first content studio.",
+    homeLink: "Home",
+    workspaceLink: "Workspace",
+    navAria: "Primary navigation",
+    membersAria: "NABDA team members",
+    trackBadge: "Saudi MIB 2027 · Track 02",
+    ctaTitle: "Explore the NABDA Workspace",
+    ctaPrimary: "Enter Workspace",
+    ctaSecondary: "Back to Home",
+    members: [
+      {
+        id: "fatima",
+        initials: "FN",
+        name: "Fatma Noor",
+        role: "Product & Training",
+        bio: "Product concept development, content creation, and educational expertise",
+      },
+      {
+        id: "osama",
+        initials: "UR",
+        name: "Usama Rabie",
+        role: "Technology & Engineering",
+        bio: "Software engineering, system integrations, and workflow architecture",
+      },
+      {
+        id: "noura",
+        initials: "NE",
+        name: "Noura Elsaman",
+        role: "Engagement & Gamification",
+        bio: "Designing interactive experiences and measuring audience engagement",
+      },
+    ],
+  },
+} as const;
 
 export const LOGIN_COPY = {
   ar: {

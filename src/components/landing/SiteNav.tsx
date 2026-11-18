@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { usePreferences } from "@/components/PreferencesProvider";
@@ -65,6 +66,9 @@ export function SiteNav({ logoUrl }: { logoUrl: string }) {
                 <a href={l.href}>{l.label}</a>
               </li>
             ))}
+            <li>
+              <Link href="/team">{isEn ? LANDING_EN.teamLink : "الفريق"}</Link>
+            </li>
           </ul>
         </nav>
         <div className="nabda-nav__prefs">
@@ -95,6 +99,11 @@ export function SiteNav({ logoUrl }: { logoUrl: string }) {
                 </a>
               </li>
             ))}
+            <li>
+              <Link href="/team" onClick={() => setOpen(false)}>
+                {isEn ? LANDING_EN.teamLink : "الفريق"}
+              </Link>
+            </li>
           </ul>
           <div className="nabda-nav__sheet-prefs">
             <PreferencesControls variant="landing" />

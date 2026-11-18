@@ -19,6 +19,7 @@ import {
   Menu,
   Plus,
   ShieldCheck,
+  Users,
   WandSparkles,
   X,
 } from "lucide-react";
@@ -320,6 +321,10 @@ export function NabdaWorkspace() {
           <Link href="/" className="sidebar-landing-link" onClick={() => setMobileMenu(false)}>
             <BackArrow size={16} aria-hidden="true" />
             <span>{isEn ? w.backToLanding : "الصفحة التعريفية"}</span>
+          </Link>
+          <Link href="/team" className="sidebar-landing-link" onClick={() => setMobileMenu(false)}>
+            <Users size={16} aria-hidden="true" />
+            <span>{isEn ? "Team" : "فريق نبضة"}</span>
           </Link>
         </nav>
 

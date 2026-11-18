@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { usePreferences } from "@/components/PreferencesProvider";
 import { LANDING_EN } from "@/lib/i18n/translations";
 import { NAV_LINKS } from "./content";
@@ -33,6 +34,9 @@ export function SiteFooter({ logoUrl }: { logoUrl: string }) {
             ))}
             <li>
               <a href="#faq">{isEn ? en.faqLink : "أسئلة شائعة"}</a>
+            </li>
+            <li>
+              <Link href="/team">{isEn ? LANDING_EN.teamLink : "الفريق"}</Link>
             </li>
           </ul>
         </nav>
