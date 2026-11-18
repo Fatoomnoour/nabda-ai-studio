@@ -944,6 +944,8 @@ html[data-theme="light"] .lp-skip {
 }
 .lp-team-card__link {
   display: inline-flex;
+  align-self: flex-start;
+  width: fit-content;
   align-items: center;
   gap: 0.45rem;
   min-height: 44px;
