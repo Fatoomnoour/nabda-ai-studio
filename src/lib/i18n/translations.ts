@@ -311,6 +311,8 @@ export const WORKSPACE_EN = {
   openMenuAria: "Open menu",
   primaryNavAria: "Primary navigation",
   newProject: "New Project",
+  backToLanding: "Landing Page",
+  backToLandingAria: "Return to landing page",
   workspaceSection: "Workspace",
   nav: {
     home: "Overview",

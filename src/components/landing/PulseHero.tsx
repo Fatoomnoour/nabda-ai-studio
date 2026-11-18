@@ -95,7 +95,6 @@ export function PulseHero() {
               <circle r="13" />
             </g>
           </svg>
-          <p className="pulse-hero__note">{isEn ? en.note : "رسم حركي مشتق للنبضة، منفصل عن الشعار الرسمي."}</p>
         </div>
         {animated && <p className="pulse-hero__scroll" aria-hidden="true">{isEn ? en.scrollHint : "مرّر للأسفل"}</p>}
       </div>

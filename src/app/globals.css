@@ -2839,6 +2839,69 @@ select.field-input {
   color: var(--mint);
 }
 
+.header-landing-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.header-landing-btn:hover {
+  background: rgba(63, 209, 168, 0.12);
+  border-color: rgba(63, 209, 168, 0.36);
+  color: var(--mint);
+}
+
+.sidebar-landing-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 9px 11px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.sidebar-landing-link:hover {
+  background: rgba(63, 209, 168, 0.09);
+  border-color: rgba(63, 209, 168, 0.28);
+  color: var(--mint);
+}
+
+html[data-theme="light"] .header-landing-btn {
+  background: #ffffff;
+}
+
+html[data-theme="light"] .sidebar-landing-link {
+  background: rgba(11, 42, 43, 0.025);
+}
+
+@media (max-width: 640px) {
+  .header-landing-btn {
+    padding: 0 9px;
+    min-width: 34px;
+    justify-content: center;
+  }
+  .header-landing-btn span {
+    display: none;
+  }
+}
+
 /* Light Mode Tokens & Overrides for Workspace */
 html[data-theme="light"] {
   --bg: #f6f3ec;

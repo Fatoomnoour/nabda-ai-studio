@@ -53,9 +53,6 @@ export function LocalizationSection() {
               <span>{isEn ? en.localLabel : "سعودي أبيض"}</span>
               <p>{isEn ? en.localText : "ممشى جديد على البحر… وصار قريب منك!"}</p>
             </div>
-            <figcaption>
-              {isEn ? en.figcaption : "مثال توضيحي لاختلاف النبرة، والصياغة النهائية دايم تحت مراجعتك."}
-            </figcaption>
           </figure>
         </div>
 

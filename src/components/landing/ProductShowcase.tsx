@@ -223,7 +223,6 @@ export function ProductShowcase() {
           <div className="lp-mock">
             <div className="lp-mock__bar" aria-hidden="true">
               <span>{isEn ? en.barTitle : "مساحة عمل نبضة"}</span>
-              <span className="lp-mock__demo">{isEn ? en.barDemo : "عرض توضيحي"}</span>
             </div>
             <div className="lp-stack lp-mock__stage">
               {items.map((item, i) => (

@@ -1,6 +1,6 @@
 "use client";
 
-import { Languages, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { usePreferences } from "./PreferencesProvider";
 import { CONTROLS_COPY } from "@/lib/i18n/translations";
 
@@ -27,7 +27,6 @@ export function PreferencesControls({ variant = "workspace", compact = false }: 
         aria-label={lang === "ar" ? copy.switchToEn : copy.switchToAr}
         title={lang === "ar" ? copy.switchToEn : copy.switchToAr}
       >
-        <Languages size={15} aria-hidden="true" />
         <span>{copy.langBadge}</span>
       </button>
 

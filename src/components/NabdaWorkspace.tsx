@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
@@ -12,6 +13,7 @@ import {
   Clapperboard,
   FileEdit,
   FolderOpen,
+  Globe,
   Home,
   Layers3,
   Lightbulb,
@@ -315,6 +317,10 @@ export function NabdaWorkspace() {
             <CheckCircle2 size={17} />
             <span>{isEn ? w.nav.final : "الاعتماد والتصدير"}</span>
           </button>
+          <Link href="/" className="sidebar-landing-link" onClick={() => setMobileMenu(false)}>
+            <Globe size={17} />
+            <span>{isEn ? w.backToLanding : "الصفحة التعريفية"}</span>
+          </Link>
         </nav>
 
         <div className="sidebar-bottom">
@@ -348,6 +354,15 @@ export function NabdaWorkspace() {
             <strong>{VIEW_TITLES[view]}</strong>
           </div>
           <div className="header-right">
+            <Link
+              href="/"
+              className="header-landing-btn"
+              aria-label={isEn ? w.backToLandingAria : "العودة إلى الصفحة التعريفية"}
+              title={isEn ? w.backToLandingAria : "العودة إلى الصفحة التعريفية"}
+            >
+              <Globe size={15} aria-hidden="true" />
+              <span>{isEn ? w.backToLanding : "الصفحة التعريفية"}</span>
+            </Link>
             <PreferencesControls variant="workspace" compact />
             <span className="demo-pill">
               <span className="live-dot" />

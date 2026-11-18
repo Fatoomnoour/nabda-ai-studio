@@ -38,7 +38,6 @@ export function SiteFooter({ logoUrl }: { logoUrl: string }) {
         </nav>
       </div>
       <div className="lp-container lp-footer__legal">
-        <p>{isEn ? en.legalNote : "نموذج مرئي للمراجعة، ولا يمثّل الخدمة النهائية."}</p>
         <p>{isEn ? en.copyright : "© 2026 نبضة NABDA AI"}</p>
       </div>
     </footer>
