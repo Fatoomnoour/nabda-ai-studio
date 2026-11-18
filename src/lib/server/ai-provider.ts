@@ -69,33 +69,40 @@ function sseToText(upstream: Response, pick: (ev: unknown) => string | undefined
 export async function streamText(prompt: string, tier: Tier): Promise<Response> {
   const provider = activeProvider();
   if (provider === "gemini") {
-    // Try fast models first; skip any the key can't use (404/400) and fall through to the next.
-    const chain = geminiChain(tier);
+    // Non-streaming generateContent (the SSE stream stalled on Vercel). Fast-first chain:
+    // skip models the key can't use (404/400) or that don't answer within GEMINI_TIMEOUT_MS.
+    const timeoutMs = Number(process.env.GEMINI_TIMEOUT_MS || 25000);
     let last: Response | null = null;
-    for (const model of chain) {
-      const upstream = await fetch(`${GEMINI_BASE}/v1beta/models/${model}:streamGenerateContent?alt=sse`, {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY! },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 4096, ...thinkingFor(model) },
-        }),
-      });
-      if (upstream.ok) {
-        return textResponse(
-          sseToText(upstream, ev => {
-            const parts = (ev as { candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[] })
-              .candidates?.[0]?.content?.parts;
-            return parts?.filter(p => !p.thought).map(p => p.text || "").join("");
+    for (const model of geminiChain(tier)) {
+      let upstream: Response;
+      try {
+        upstream = await fetch(`${GEMINI_BASE}/v1beta/models/${model}:generateContent`, {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY! },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            generationConfig: { maxOutputTokens: 4096, ...thinkingFor(model) },
           }),
-          model,
-        );
+          signal: AbortSignal.timeout(timeoutMs),
+        });
+      } catch {
+        last = Response.json({ error: "UPSTREAM_TIMEOUT", model }, { status: 504 });
+        continue;
+      }
+      if (upstream.ok) {
+        const data = (await upstream.json()) as {
+          candidates?: { content?: { parts?: { text?: string; thought?: boolean }[] } }[];
+        };
+        const text = (data.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || "").join("");
+        return new Response(text, {
+          headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-nabda-model": model },
+        });
       }
       last = upstream;
       if (upstream.status !== 404 && upstream.status !== 400) break;
     }
-    return upstreamError(last!);
+    return last && last.headers.get("content-type")?.includes("json") && last.status === 504 ? last : upstreamError(last!);
   }
   if (provider === "anthropic") {
     const model =
