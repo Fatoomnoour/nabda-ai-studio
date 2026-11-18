@@ -2,12 +2,23 @@
 
 Status language: **PASS** = verified by executed test; **FAIL** = executed and failed; **BLOCKED** = could not execute due environment; **NOT TESTED** / **NOT MEASURED** = not attempted in live browser; **NOT IMPLEMENTED** = intentionally deferred.
 
+## P02A.2 / P02B.0 PR Merge, Synchronized `main` & `feat/frontend-core` Preparation (2026-11-18)
+
+### GitHub Closure, Post-Merge `main` & Governance Audit (`v0.1.7`)
+
+- **P02A Pull Request (`#1`):** `https://github.com/NouraElsaman/nabda-ai-mvp/pull/1` (`feat/api-contract-alignment` `e1184d2` → `main`), verified `mergeable: true` / `clean`, `15` changed files, **MERGED** via regular merge commit `bc932b73630b1599e29a68f99cda9467d2c7032a`.
+- **Canonical `main` Synchronization:** Fast-forwarded local `main` to `origin/main` (`bc932b73630b1599e29a68f99cda9467d2c7032a`). Post-merge re-execution on `main` passed all 4 checks (`typecheck`, `lint`, `build`, `test:contracts` `17/17 PASS`).
+- **Repository Visibility & Branch Protection Check:** Confirmed `private: true` (`visibility: "private"`). REST API `/branches/main` reports `protected: false`; `/branches/main/protection` and `/rules/branches/main` both return `HTTP 403` (`Upgrade to GitHub Pro or make this repository public to enable this feature.`). Direct third-party GitHub writes remain disabled until enforceable protection exists (**`READ-ONLY UX PLANNING READY`**).
+- **Frontend Branch:** `feat/frontend-core` created directly from merged `main` (`bc932b7`) with controlled collaboration policy and `docs/FRONTEND_UX_HANDOFF.md`.
+
+---
+
 ## P02A Shared API Contract Freeze & Pre-Backend Integration Readiness (2026-11-18)
 
 ### Environment & Branch Status
 
 - Workspace: `<workspace-root>/nabda-ai-mvp` (external pre-P02A backup checkpoint stored locally outside repository)
-- Node.js: `v24.17.0` | npm: `11.13.0` | Git: `2.55.0.windows.3` (feature branch `feat/api-contract-alignment` branched from clean `main` at `3ce96a22c947d5c616a7e7ddfe7d9b4a462daa43`)
+- Node.js: `v24.17.0` | npm: `11.13.0` | Git: `2.55.0.windows.3` (feature branch `feat/api-contract-alignment` at `e1184d2f5e9222e42461e6227d6c527e132c388e`, branched from `3ce96a22c947d5c616a7e7ddfe7d9b4a462daa43`, merged into `main` at `bc932b73630b1599e29a68f99cda9467d2c7032a`)
 
 ### Engineering, Contract Freeze & Manual Visual Review Results (`v0.1.7`)
 
@@ -105,7 +116,7 @@ Status language: **PASS** = verified by executed test; **FAIL** = executed and f
 - **P01B (`v0.1.2`, 2026-11-17)**: Derived `nabda-logo-dark.png` (`428×109`, `2,178` B) from untouched `nabda-logo.png` (`8,898` B), fixed `9:16 · 720×1280` BiDi reversal, and localized all UI/service copy to gender-neutral Saudi White Arabic.
 - **P01A (`v0.1.1`, 2026-11-17)**: Regenerated `package-lock.json` via `npm install` + `npm ci`, fixed `react-hooks/set-state-in-effect` lint error (`0` errors, `0` warnings), and enforced field-specific and section-level validation.
 
-## Next phase gates (`feat/api-contract-alignment` PR -> `feat/backend-integrations` / `feat/frontend-core`)
+## Next phase gates (`P02A` Merged → `feat/frontend-core` / `feat/backend-integrations`)
 
-1. Project Lead: review and approve merging the Pull Request (`feat/api-contract-alignment` -> `main`) on GitHub.
-2. After `P02A` merges: Backend Lead starts `feat/backend-integrations` from updated `main`; Frontend Lead uses `feat/frontend-core` independently (and optional isolated Lovable / Vercel development preview if separately approved).
+1. Frontend Lead (`feat/frontend-core`): refine UX (`UX-01`–`UX-04`) using read-only Lovable UX analysis + Antigravity-controlled code patches (`docs/FRONTEND_UX_HANDOFF.md`), followed by live browser/mobile/keyboard QA and PR review to `main`.
+2. Backend Lead (`feat/backend-integrations` from `main` `bc932b7`): implement Supabase/Gemini/Azure/Remotion endpoints per `docs/BACKEND_HANDOFF.md` and `docs/API_CONTRACT.md` (currently `ALL ROUTES DRAFT`).

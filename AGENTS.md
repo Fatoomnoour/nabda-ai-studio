@@ -24,7 +24,15 @@
 - Update `docs/PROJECT_HANDOFF.md` and `docs/CHANGELOG.md` with changed files, command results, known issues and next step.
 - Show `git diff --stat`, meaningful code diff and current Git status.
 - **Stop before committing, pushing, merging, deleting, changing secrets or deploying without express human approval.**
-- Respect branch ownership: Frontend Lead `feat/frontend-core`, Shared Contract Owner `feat/api-contract-alignment`, Backend Lead `feat/backend-integrations`. PR to main only after review.
+- Respect branch ownership: Frontend Lead `feat/frontend-core` (see `docs/FRONTEND_UX_HANDOFF.md`), Shared Contract Owner `feat/api-contract-alignment` (`P02A` merged via PR #1), Backend Lead `feat/backend-integrations`. PR to `main` only after review.
+
+## CONTROLLED LOVABLE COLLABORATION POLICY
+
+Distinguish three collaboration modes strictly:
+
+1. **GitHub API Read-Only Code Analysis (VERIFIED & ALLOWED):** Inspecting existing Next.js 16 / React 19 / TypeScript / Tailwind v4 code to propose frontend UX improvements (`UX-01`–`UX-04`) grounded in the real codebase.
+2. **Conditional Feature-Branch Write Test (CONDITIONAL — NOT AUTOMATICALLY AUTHORIZED):** Any remote write test is restricted strictly to `feat/frontend-core` (never `main`) and requires verifiable GitHub branch protection/rulesets blocking direct pushes to `main`. Because GitHub's REST API reports `protected: false` and `HTTP 403` for branch protection/rulesets on the current private GitHub Free repository plan, natural-language prompt rules alone cannot restrict a broad write token. Until enforceable protection exists, keep direct Lovable GitHub writes **disabled** and route changes through: **Lovable UX proposals → Antigravity-controlled code patch on `feat/frontend-core` → Local checks → Pull Request → Human approval**.
+3. **Standalone App-Building & Git Sync Replacement (FORBIDDEN):** Never enable automatic Git Sync repository replacement, generate a replacement project, migrate Next.js 16 to Vite/TanStack Start/another stack, or alter frozen contracts (`src/lib/contracts/domain.ts`, `src/lib/api/service.ts`, `src/lib/utils/client.ts`), `src/lib/fixtures/**`, `src/app/api/**`, `supabase/**`, `docs/API_CONTRACT.md`, `tests/**`, `public/brand/**`, `docs/references/leader-prototype.html`, or `.env*`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
