@@ -1,0 +1,80 @@
+# NABDA Starter — Actual QA Evidence (Updated 18 November 2026)
+
+Status language: **PASS** = verified by executed test; **FAIL** = executed and failed; **BLOCKED** = could not execute due environment; **NOT TESTED** / **NOT MEASURED** = not attempted in live browser; **NOT IMPLEMENTED** = intentionally deferred.
+
+## P01D.2 Pre-Commit Repository Sanitization & Privacy Gate (2026-11-18)
+
+### Environment & Status
+
+- Workspace: `<workspace-root>/nabda-ai-mvp` (external backups retained locally outside repository)
+- Node.js: `v24.17.0` | npm: `11.13.0` | Git: `2.55.0.windows.3` (`.git` present on branch `main`: `0` commits, `0` staged files, `0` remotes — waiting for Project Lead approval)
+
+### Engineering, Security & Manual Visual Review Results (`v0.1.6`)
+
+| Check | Status | Actual Output / Evidence |
+|---|---|---|
+| `npm run typecheck` | PASS | Exit 0 (`tsc --noEmit`) |
+| `npm run lint` | PASS | Exit 0 (`eslint .` — 0 errors, 0 warnings) |
+| `npm run build` | PASS | Exit 0 (`next build` Next.js `16.4.6` Turbopack static routes `/` and `/_not-found`) |
+| `npm run test:contracts` | PASS | Exit 0 — `13/13` subtests across 3 suites (`tests/starter-structure.test.mjs`, `tests/p0-stabilization.test.mjs`) |
+| Manual visual mobile review (`v0.1.6` screenshots) | PASS (Manual Visual) | Supported by Frontend Lead screenshots: responsive layout, NABDA logo, 2×2 homepage workflow, single-line counter, balanced card proportions, Saudi UI, portrait storyboard, disabled export state, instructional-template validation alert |
+| Pre-commit sanitization & `.gitignore` audit | PASS | 0 personal names, emails, secrets, or local backup paths in candidate files; `.env.local` absent; `.env.example` allowed; backups, renders, and `docs/references/NABDA_Week3_Project_Reference.pdf` ignored; **39** clean candidate files |
+| Browser automation (`chrome_devtools` MCP) | NOT TESTED | `BROWSER AUTOMATION: NOT TESTED` — never marked PASS (`DevToolsActivePort` absent on browser profile) |
+| Interactive drawer/keyboard/persistence click-through | NOT TESTED (Automated) | Static & unit tests PASS; optional interactive confirmation from Frontend Lead (non-blocking polish defers to `feat/frontend-core`) |
+| Runtime Web Vitals (LCP, CLS, INP) / Lighthouse | NOT MEASURED | Requires live Chrome DevTools / Lighthouse session on `npm run start` |
+| AI, Supabase, TTS, MP4, GitHub push | NOT IMPLEMENTED / PENDING | Backend intentionally deferred to P02A/P02; staging, commit & GitHub push await Project Lead explicit approval |
+
+---
+
+## P01D.1 Mobile Visual Sign-off, Pre-Git Security Gate & Backend Handoff Readiness (2026-11-18)
+
+### Summary
+
+- Recorded Frontend Lead screenshot-supported visual sign-off, completed Backend Lead architecture/API handoff in `docs/BACKEND_HANDOFF.md`, added `next-env.d.ts` to `.gitignore`, and kept external backups outside the project root.
+
+---
+
+## P01D.0 Final Mobile UX Defect Resolution & Pre-GitHub Acceptance Gate (2026-11-18)
+
+### Environment
+
+- Workspace: `<workspace-root>/nabda-ai-mvp` (external milestone backup retained locally outside repository)
+- Node.js: `v24.17.0` | npm: `11.13.0` | Git: `2.55.0.windows.3` (not initialized)
+
+### Post-P01D.0 Command Results
+
+| Check | Status | Actual Output / Evidence |
+|---|---|---|
+| `npm run typecheck` | PASS | Exit 0 (`tsc --noEmit`) |
+| `npm run lint` | PASS | Exit 0 (`eslint .` — 0 errors, 0 warnings) |
+| `npm run build` | PASS | Exit 0 (`next build` Next.js `16.4.6` Turbopack static routes `/` and `/_not-found`) |
+| `npm run test:contracts` | PASS | Exit 0 — `13/13` subtests across 3 suites (`tests/starter-structure.test.mjs` and `tests/p0-stabilization.test.mjs`), including P01D.0 template-rejection and localization guards |
+| Browser automation (`chrome_devtools` MCP) | NOT TESTED | `BROWSER AUTOMATION: NOT TESTED` — `DevToolsActivePort` missing on user's normal Chrome profile; untouched per safety policy |
+| Visual/responsive matrix (`1440×900` to `320×568`) | NOT TESTED | Mobile CSS breakpoints (`<=650px`, `<=380px`), 2×2 `.pipe-step` grid, single-line `.char-counter`, and `:disabled` styles verified statically; live Chrome mobile QA pending |
+| Runtime Web Vitals (LCP, CLS, INP) / Lighthouse | NOT MEASURED | Requires manual Chrome DevTools / Lighthouse session on `npm run start` |
+| AI, Supabase, TTS, MP4, deploy | NOT IMPLEMENTED | Intentionally deferred per `docs/MVP_SCOPE.md` |
+
+### Root Causes Diagnosed & Fixed in P01D.0
+
+1. **Defect A — Broken mobile `.pipe` wrap (`NabdaWorkspace.tsx`, `globals.css`)**: Replaced flex-wrap pill+arrow flow with a symmetrical 2×2 numbered `.pipe-step` grid (`01 المصدر`, `02 استخراج الحقائق`, `03 السكريبت السعودي`, `04 الاعتماد البشري`), eliminating orphan second-row arrows without reintroducing `فيديو 9:16`.
+2. **Defect B — Wrapped `.char-counter` (`ContentInput.tsx`, `globals.css`)**: Added `.char-counter` (`white-space: nowrap; flex-shrink: 0; unicode-bidi: isolate; font-variant-numeric: tabular-nums`) alongside `.input-foot > span:first-child { flex: 1; min-width: 0 }` so `0 / 3000` stays single-line across mobile widths.
+3. **Defect C — Ambiguous disabled green CTAs (`globals.css`, `VideoStudio.tsx`)**: Replaced opacity-only disabled styling with explicit muted dashed surface (`rgba(11, 35, 36, 0.72)`, `var(--muted)`, `1px dashed rgba(143, 179, 170, 0.34)`), and permanently disabled the unconnected video render button in `VideoStudio` alongside `FinalReview`'s gated MP4 download button.
+4. **Defect D — Unnecessary English badges/statuses**: Replaced visible English UI tokens (`LOCAL PROTOTYPE`, `MVP Path`, `localStorage`, `SCRIPT STUDIO`, `Hook`, `Body`, `CTA`, `Safe Zone`, `Renderer`, `Not connected`, `Pending`, `Local Only`, `Waiting for AI`, `Fixture`, `EDITORIAL MEMORY`, `API Contract · DRAFT`, `Source Grounding`, `Backend`) with gender-neutral Saudi White Arabic while preserving real technical/competition names (`NABDA AI`, `Saudi MIB 2027`, `Azure`, `Remotion`, `MP4`).
+5. **Defect E — Mobile density (`globals.css`)**: Preserved 2×2 `.metrics-grid` down to `@media (max-width: 380px)` (removing `1fr` collapse), added 2-column mobile `.vh-actions`, compacted mobile `.source-textarea` (`165px`), and prevented `.video-scene` full-width blow-up (`232px`/`224px` max-width).
+6. **Content Integrity — Instructional-template leakage (`src/lib/utils/client.ts`, `ScriptStudio.tsx`, `VideoStudio.tsx`)**: Added `isInstructionalTemplateText` to block unmodified Hook/CTA prompt strings from saving/approving and to guard `VideoStudio` storyboard cards without deleting existing `localStorage` records.
+
+---
+
+## P01C.2, P01C.1, P01C, P01B & P01A History Summary
+
+- **P01C.2 (`v0.1.5`, 2026-11-18)**: Removed extra `فيديو 9:16` badge from `.pipe`, aligned `.home-bottom` and cross-screen paired cards (`ContentInput`, `VideoStudio`, `FinalReview`) via `align-items: stretch`.
+
+- **P01C.1 (`v0.1.4`, 2026-11-18)**: Replaced oversized homepage hero with Leader-grounded `.vh` + 4-column local KPIs + `.home-bottom`, normalized `--sidebar-w: 240px` and `--content-max: 1180px`, aligned `ContentInput`/`ScriptStudio`/`VideoStudio`/`FinalReview` column ratios, and cleared footer `N` badge overlap.
+- **P01C (`v0.1.3`, 2026-11-18)**: Fixed sidebar footer clipping (`height: 100dvh; overflow-y: auto; flex-shrink: 0`), added drawer/modal body scroll locks and focus return, and applied logical RTL CSS.
+- **P01B (`v0.1.2`, 2026-11-17)**: Derived `nabda-logo-dark.png` (`428×109`, `2,178` B) from untouched `nabda-logo.png` (`8,898` B), fixed `9:16 · 720×1280` BiDi reversal, and localized all UI/service copy to gender-neutral Saudi White Arabic.
+- **P01A (`v0.1.1`, 2026-11-17)**: Regenerated `package-lock.json` via `npm install` + `npm ci`, fixed `react-hooks/set-state-in-effect` lint error (`0` errors, `0` warnings), and enforced field-specific and section-level validation.
+
+## Remaining human gates for GitHub baseline (`v0.1.6`)
+
+1. Confirm local Git commit author identity (`user.name` / `user.email`, e.g., GitHub private `noreply` email).
+2. Explicitly approve staging the **39** audited files (`git add`), then approve baseline commit (`chore: establish clean NABDA frontend baseline v0.1.6`), remote `origin` configuration, and `git push -u origin main`.
