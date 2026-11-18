@@ -71,8 +71,8 @@ export async function streamText(prompt: string, tier: Tier): Promise<Response> 
   if (provider === "gemini") {
     const model =
       tier === "quick"
-        ? process.env.GEMINI_MODEL_QUICK || "gemini-2.5-flash-lite"
-        : process.env.GEMINI_MODEL || "gemini-2.5-flash";
+        ? process.env.GEMINI_MODEL_QUICK || process.env.GEMINI_MODEL || "gemini-3.8-flash"
+        : process.env.GEMINI_MODEL || "gemini-3.8-flash";
     const upstream = await fetch(
       `${GEMINI_BASE}/v1beta/models/${model}:streamGenerateContent?alt=sse`,
       {
@@ -81,7 +81,11 @@ export async function streamText(prompt: string, tier: Tier): Promise<Response> 
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 4096, thinkingConfig: { thinkingBudget: 0 } },
+          generationConfig: {
+            maxOutputTokens: 4096,
+            // Gemini 2.5 supports a zero thinking budget (faster); newer models use their defaults.
+            ...(model.startsWith("gemini-2.5") ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+          },
         }),
       },
     );
