@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { usePreferences } from "@/components/PreferencesProvider";
 import { LANDING_EN } from "@/lib/i18n/translations";
@@ -22,16 +21,16 @@ export function ConversionSection() {
           {isEn ? en.lead : "الصق أول خبر، وشوف كيف يتحوّل لسكريبت منظّم تراجعه وتعتمده بنفسك."}
         </p>
         <div className="lp-cta__actions">
-          <Link href={CONVERSION.plannedRoute} className="pulse-btn pulse-btn--primary pulse-btn--lg">
+          <a href="/studio" className="pulse-btn pulse-btn--primary pulse-btn--lg">
             {isEn ? en.primary : CONVERSION.primary}
             {isEn ? <ArrowRight aria-hidden="true" /> : <ArrowLeft aria-hidden="true" />}
-          </Link>
+          </a>
           <a href="#how" className="pulse-btn pulse-btn--ghost pulse-btn--lg">
             {isEn ? en.secondary : CONVERSION.secondary}
           </a>
         </div>
         <p className="lp-cta__note is-on">
-          {isEn ? en.note : "نسخة تجريبية: عملك يُحفظ في متصفحك فقط."}
+          {isEn ? en.note : "نسخة تجريبية: الحملة تتولّد مباشرة ولا تُحفظ بعد تحديث الصفحة."}
         </p>
       </div>
     </section>

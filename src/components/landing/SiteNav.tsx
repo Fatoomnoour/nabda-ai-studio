@@ -74,7 +74,7 @@ export function SiteNav({ logoUrl }: { logoUrl: string }) {
         <div className="nabda-nav__prefs">
           <PreferencesControls variant="landing" compact />
         </div>
-        <a href="#start" className="pulse-btn pulse-btn--primary nabda-nav__cta">
+        <a href="/studio" className="pulse-btn pulse-btn--primary nabda-nav__cta">
           {isEn ? LANDING_EN.tryCta : "جرّب نبضة"}
         </a>
         <button
@@ -108,7 +108,7 @@ export function SiteNav({ logoUrl }: { logoUrl: string }) {
           <div className="nabda-nav__sheet-prefs">
             <PreferencesControls variant="landing" />
           </div>
-          <a href="#start" className="pulse-btn pulse-btn--primary" onClick={() => setOpen(false)}>
+          <a href="/studio" className="pulse-btn pulse-btn--primary" onClick={() => setOpen(false)}>
             {isEn ? LANDING_EN.tryCta : "جرّب نبضة"}
           </a>
         </nav>

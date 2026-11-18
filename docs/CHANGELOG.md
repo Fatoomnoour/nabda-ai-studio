@@ -116,3 +116,12 @@ Requested by the Project Lead (Fatma) on branch `feat/live-studio-gemini`. Froze
 - Removed leftover @qudurat_academy / "القدرات · اللفظي" from slide and reel templates; X card only appears when an X post exists.
 - Disclosure badge reflects real state (draft until approved); privacy line and FAQ updated to the actual behaviour.
 - Still open: shared rate limit (use Vercel Firewall rate limiting), partial-success state per format, mobile swarm/calendar layout, shorter intro.
+
+## 2026-11-18 (2) — audit round 2
+- Approval log shows voided approvals distinctly ("اعتماد ملغى بسبب تعديل المحتوى"); approval is voided on every keystroke (input event), not only on save.
+- Redo is bound to the tab it started on (no cross-tab overwrite); finishing on another tab only toasts.
+- Per-format partial success ("نجحت 4 من 5"), retry only the failed formats, failed formats can't be approved, calendar says plan is proposed and only week 1 is generated.
+- Posts only for selected platforms (no silent X fallback); calendar label follows selection.
+- All "try Nabda" CTAs → /studio; /login keeps the local tour as a clearly named secondary option.
+- /api/health?probe=1 now needs `Authorization: Bearer <HEALTH_PROBE_TOKEN>` and is capped at 5/hour per instance.
+- Mobile: swarm one column ≤980px, calendar as a list ≤700px, 44px touch targets, prefers-reduced-motion honoured in the studio, landing hero shortened (150vh / 130vh).

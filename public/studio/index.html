@@ -92,7 +92,9 @@ mark{background:rgba(63,209,168,.18);color:var(--tx);border-radius:4px;padding:0
 .cmp{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}.cmp .col{border-radius:16px;padding:16px;border:1px solid var(--bd)}.cmp .col.n{border-color:var(--mint);background:rgba(63,209,168,.06)}.cmp .col h4{font-size:14px;margin-bottom:8px}.cmp .txt{white-space:pre-wrap;font-size:14px;min-height:120px}
 .chk{font-size:13px;color:var(--mu);margin-top:10px}.chk div{margin:2px 0}
 /* calendar */
+.swarmWrap{grid-template-columns:1fr 2fr}.agentsGrid{grid-template-columns:repeat(2,1fr)}
 .cal{display:grid;grid-template-columns:150px repeat(5,minmax(110px,1fr));gap:6px;font-size:13px;overflow:auto}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 .cal>div{background:var(--p);border:1px solid var(--bd);border-radius:12px;padding:8px;min-height:64px}.cal .h{background:var(--p2);min-height:auto;text-align:center;font-weight:600}.cal .wk{background:var(--bg2);font-weight:600}.cal .item{border-color:rgba(63,209,168,.4);background:rgba(63,209,168,.08)}.cal .later{color:var(--mu)}
 .note{font-size:12.5px;color:var(--mu)}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--mint);color:var(--g);font-weight:600;padding:10px 18px;border-radius:12px;display:none;z-index:50;max-width:90vw}
@@ -101,7 +103,8 @@ mark{background:rgba(63,209,168,.18);color:var(--tx);border-radius:4px;padding:0
 .sc .lbl{position:absolute;top:18px;left:14px;font-size:11.5px;font-weight:700;color:var(--g);border-radius:6px;padding:1px 7px;white-space:nowrap;font-family:'IBM Plex Sans Arabic'}
 .bld-hide{clip-path:inset(0 0 100% 0);opacity:.2}.bld-show{clip-path:inset(0 0 0 0);opacity:1;transition:clip-path .55s ease,opacity .4s ease;outline:1.5px dashed var(--c,var(--mint));outline-offset:3px}
 .skip{position:fixed;bottom:20px;right:20px;z-index:61;display:none}
-@media(max-width:980px){.app{grid-template-columns:1fr}.side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border:0;border-bottom:1px solid var(--bd)}.side .nv{width:auto}.sfoot,.side .sep{display:none}.brand{padding:0 8px}.grid2,.grid3,.studio,.cmp{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}.swarm{grid-template-columns:1fr}.panelS{position:static}.top{position:static}}
+@media(max-width:980px){.swarmWrap,.agentsGrid{grid-template-columns:1fr}.app{grid-template-columns:1fr}.side{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;border:0;border-bottom:1px solid var(--bd)}.side .nv{width:auto}.sfoot,.side .sep{display:none}.brand{padding:0 8px}.grid2,.grid3,.studio,.cmp{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}.swarm{grid-template-columns:1fr}.panelS{position:static}.top{position:static}}
+@media(max-width:700px){.cal{grid-template-columns:1fr;overflow:visible}.cal .h{display:none}.cal .wk{margin-top:12px;font-weight:700;color:var(--gold)}.cal .item,.cal .later{display:flex;justify-content:space-between;align-items:center;gap:10px}.cal .item br,.cal .later br{display:none}.btn,.chip,.tab{min-height:44px}}
 </style>
 </head>
 <body>
@@ -179,12 +182,12 @@ mark{background:rgba(63,209,168,.18);color:var(--tx);border-radius:4px;padding:0
     <div class="vh"><div><h2>السرب يبني حملتك</h2><p class="sub" id="swLead">استخراج الحقائق، ثم 5 وكلاء بالتوازي، ثم المدقّق.</p></div><div style="text-align:center"><div class="timer" id="timer">0.0</div><div class="note">ثانية</div></div></div>
     <div class="demo" id="demoNote">وضع العرض: هذا المتصفح غير متصل بـ Claude، فنعرض نتيجة حقيقية محفوظة مسبقًا لنفس الدرس.</div>
     <div class="pipe" id="pipe"></div>
-    <div class="grid2" style="grid-template-columns:1fr 2fr;align-items:start">
+    <div class="grid2 swarmWrap" style="align-items:start">
       <div class="card"><h4 style="font-size:15px;margin-bottom:10px">📌 الحقائق المستخرجة من المصدر</h4><div class="facts" id="factsList"><span class="note">بانتظار الاستخراج…</span></div><div id="planBox" style="margin-top:12px"></div></div>
-      <div><div class="swarm" id="agents" style="grid-template-columns:repeat(2,1fr)"></div>
+      <div><div class="swarm agentsGrid" id="agents"></div>
       <div class="card" id="checker" style="display:none;margin-top:14px;border-color:rgba(212,176,106,.4)"><h4 style="color:var(--gold);font-size:15px;margin-bottom:6px">✓ مدقّق اللهجة والحقائق</h4><div id="checkOut" class="out" style="max-height:none"></div></div></div>
     </div>
-    <div class="row" style="margin-top:18px;justify-content:flex-end"><button class="btn" id="toStudio" disabled onclick="show('studio')">افتح استوديو المحتوى ←</button></div>
+    <div class="row" style="margin-top:18px;justify-content:space-between;gap:12px;flex-wrap:wrap"><div id="okSummary" class="note" aria-live="polite"></div><div class="row" style="gap:10px"><button class="btn gold sm" id="retryFailed" style="display:none" onclick="retryFailed()">أعد محاولة الصيغ الفاشلة فقط</button><button class="btn" id="toStudio" disabled onclick="show('studio')">افتح استوديو المحتوى ←</button></div></div>
   </section>
 
   <!-- STUDIO -->
@@ -302,11 +305,17 @@ async function runSwarm(){
  await Promise.all(jobs);
  const parts=S.plan?.parts||[];if(parts.length){$('planBox').innerHTML='<div class="note" style="margin-bottom:6px">خطة المنهج</div>'+parts.map((x,i)=>`<div class="fact" style="${i?'':'border-color:var(--gold)'}"><span class="n" style="background:${i?'var(--p2)':'var(--gold)'};color:${i?'var(--mu)':'var(--g)'}">${esc(String(Math.min(52,Math.max(1,parseInt(x.week,10)||i+1))))}</span><span>${esc(x.title)}${i?'':' · يعمل الآن'}</span></div>`).join('');text=parts[0].text||text}
  renderFacts('factsList');pipe(2);
- await Promise.all([...AGENTS.map(a=>runAgent(a,text)),ai(`اكتب منشور تويتر عن النص التالي:\n${text}`,{modelTier:'default'}).then(r=>S.generic=r.text).catch(()=>S.generic=isSampleSrc()?DEMO.generic:'')]);
- pipe(3);await runChecker(text);pipe(5);stopTimer();S.ready=true;$('toStudio').disabled=false}
+ S.runText=text;await Promise.all([...AGENTS.map(a=>runAgent(a,text)),ai(`اكتب منشور تويتر عن النص التالي:\n${text}`,{modelTier:'default'}).then(r=>S.generic=r.text).catch(()=>S.generic=isSampleSrc()?DEMO.generic:'')]);
+ pipe(3);await runChecker(text);pipe(5);stopTimer();summary()}
 async function runAgent(a,text){setSt(a.id,'run','يكتب…');
  try{const r=await ai(ctx(text)+'\n\nالمهمة: '+a.ask,{modelTier:'default',onText:({text:t})=>$('out-'+a.id).textContent=t});S.res[a.id]=r.text.trim();$('out-'+a.id).textContent=S.res[a.id];setSt(a.id,'ok','جاهز ✓')}
  catch(e){if(isSampleSrc()){S.res[a.id]=DEMO[a.id];$('out-'+a.id).textContent=DEMO[a.id];setSt(a.id,'err','نسخة محفوظة')}else{S.res[a.id]='';$('out-'+a.id).textContent='تعذّر توليد هذه الصيغة الآن (ضغط على الخادم). أعد تشغيل الحملة بعد لحظات.';setSt(a.id,'err','تعذّر')}}}
+function okIds(){return AGENTS.filter(a=>(S.res[a.id]||'').trim()).map(a=>a.id)}
+function summary(){const ok=okIds().length,n=AGENTS.length,bad=AGENTS.filter(a=>!(S.res[a.id]||'').trim());const el=$('okSummary');
+ S.ready=ok>0;$('toStudio').disabled=ok===0;$('retryFailed').style.display=bad.length?'inline-flex':'none';
+ el.textContent=bad.length?`نجاح جزئي: نجحت ${ok} من ${n} · تعذّر: ${bad.map(a=>a.name.replace('وكيل ','')).join('، ')}`:`نجحت كل الصيغ (${n} من ${n})`;el.style.color=bad.length?'#E8B66A':'';if(typeof renderTabs==='function'&&S.cur)renderTabs()}
+async function retryOne(id){const a=AGENTS.find(x=>x.id===id);if(!a||!S.runText)return;$('apprState').textContent='يعيد المحاولة…';AGENTS[1].ask=postsAsk();await runAgent(a,S.runText);summary();if(S.cur===id)openTab(id)}
+async function retryFailed(){const bad=AGENTS.filter(a=>!(S.res[a.id]||'').trim());if(!bad.length||!S.runText)return;$('retryFailed').disabled=true;AGENTS[1].ask=postsAsk();await Promise.all(bad.map(a=>runAgent(a,S.runText)));await runChecker(S.runText);$('retryFailed').disabled=false;summary()}
 function isSampleSrc(){return $('src').value.replace(/\s+/g,'')===SAMPLE.replace(/\s+/g,'')}
 async function runChecker(text){$('checker').style.display='block';$('checkOut').textContent='يراجع اللهجة والحقائق…';
  try{const all=AGENTS.filter(a=>S.res[a.id]).map(a=>`[${a.name}]\n${S.res[a.id]}`).join('\n\n');
@@ -317,13 +326,13 @@ async function runDemo(){
  if(S.mode==='scheduled')$('planBox').innerHTML='<div class="note" style="margin-bottom:6px">خطة المنهج</div>'+['مفهوم التناظر اللفظي','الجزء والكل والفئة','الضد والترادف والدرجة','السبب والنتيجة والوظيفة','اختبار تجريبي'].map((t,i)=>`<div class="fact" style="${i?'':'border-color:var(--gold)'}"><span class="n" style="background:${i?'var(--p2)':'var(--gold)'};color:${i?'var(--mu)':'var(--g)'}">${i+1}</span><span>${t}${i?'':' · يعمل الآن'}</span></div>`).join('');
  await sleep(500);for(const f of DEMO_FACTS){S.facts.push(f);renderFacts('factsList');await sleep(260)}pipe(2);
  await Promise.all(AGENTS.map(async(a,i)=>{setSt(a.id,'run','يكتب…');const f=DEMO[a.id];for(let k=0;k<=f.length;k+=5){$('out-'+a.id).textContent=f.slice(0,k);await sleep(15+i*4)}S.res[a.id]=f;$('out-'+a.id).textContent=f;setSt(a.id,'ok','جاهز ✓')}));
- S.generic=DEMO.generic;pipe(3);$('checker').style.display='block';$('checkOut').textContent=DEMO.check;await sleep(400);pipe(5);stopTimer();S.ready=true;$('toStudio').disabled=false}
+ S.generic=DEMO.generic;pipe(3);$('checker').style.display='block';$('checkOut').textContent=DEMO.check;await sleep(400);pipe(5);stopTimer();summary()}
 
 /* ---------- parsing ---------- */
 const lines=t=>String(t||'').split('\n').map(s=>s.replace(/^[\s\-•*·\d\.\)\(]+/,'').trim()).filter(Boolean);
 function parseSlides(t){return lines(t).map(l=>{const [a,...b]=l.split('|');return{t:(a||'').trim(),s:b.join('|').trim()}}).filter(x=>x.t).slice(0,6)}
 function parseQuiz(t){return String(t||'').split(/\n\s*\n/).map(b=>{const L=b.split('\n').map(s=>s.trim()).filter(Boolean);if(L.length<3)return null;const q=L[0].replace(/^(س\d*[\)\.:]?|\d+[\)\.])\s*/,'');const opts=L.slice(1,5).map(o=>({c:o.startsWith('*'),t:o.replace(/^\*\s*/,'').replace(/^[أبجد][\)\.]\s*/,'')}));return{q,opts}}).filter(Boolean)}
-function parsePosts(t){const T=String(t||'');const list=[];const re=/\[([^\]]+)\]/g;let mm,last=null;while((mm=re.exec(T))){if(last)list.push({k:last.k,t:T.slice(last.e,mm.index).trim()});last={k:mm[1].trim(),e:re.lastIndex}}if(last)list.push({k:last.k,t:T.slice(last.e).trim()});const x=(list.find(i=>i.k==='X')||{}).t||'';return{x,list}}
+function parsePosts(t){const T=String(t||'');const list=[];const re=/\[([^\]]+)\]/g;let mm,last=null;while((mm=re.exec(T))){if(last)list.push({k:last.k,t:T.slice(last.e,mm.index).trim()});last={k:mm[1].trim(),e:re.lastIndex}}if(last)list.push({k:last.k,t:T.slice(last.e).trim()});const sel=S.platforms||[];const L=sel.length?list.filter(i=>sel.includes(i.k)):list;const x=(L.find(i=>i.k==='X')||{}).t||'';return{x,list:L}}
 
 /* ---------- canvas helpers ---------- */
 const C={g:'#0B2A2B',g2:'#0F6B55',gold:'#D4B06A',mint:'#3FD1A8',sand:'#F6F3EC'};
@@ -381,11 +390,12 @@ function exportReel(){if(!R.cv.captureStream||!window.MediaRecorder){toast('تص
 /* ---------- studio ---------- */
 const TABS=[{id:'video',n:'🎬 الفيديو'},{id:'posts',n:'✍ المنشورات'},{id:'slides',n:'🖼 الصور'},{id:'quiz',n:'❓ الكويز'},{id:'voice',n:'🎙 الصوت'},{id:'cmp',n:'⚖ نبضة مقابل أداة عامة'}];
 const APPR=TABS.filter(t=>t.id!=='cmp');
-function renderTabs(){setTimeout(badge,0);$('pkgTabs').innerHTML=TABS.map(t=>`<button class="tab ${S.cur===t.id?'on':''}" onclick="openTab('${t.id}')">${t.n} ${S.approved[t.id]?'<span class="ck">✓</span>':''}</button>`).join('');$('apprCount').textContent=`معتمد ${Object.keys(S.approved).length} من ${APPR.length}`}
+function renderTabs(){setTimeout(badge,0);$('pkgTabs').innerHTML=TABS.map(t=>`<button class="tab ${S.cur===t.id?'on':''}" onclick="openTab('${t.id}')">${t.n} ${S.approved[t.id]?'<span class="ck">✓</span>':(t.id!=='cmp'&&!(S.res[t.id]||'').trim()?'<span class="ck" style="color:#E8B66A">⚠</span>':'')}</button>`).join('');$('apprCount').textContent=`معتمد ${Object.keys(S.approved).length} من ${APPR.length}`}
 async function openTab(id){if($('pkgEdit').dataset.k&&S.cur!=='cmp')setRes(S.cur,$('pkgEdit').value);try{window.__nbAudio&&window.__nbAudio.pause();window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}S.cur=id;R.playing=false;try{tts&&tts.stop()}catch(e){}
  const ed=id!=='cmp';$('pkgEdit').style.display=ed?'block':'none';$('pkgEdit').value=ed?(S.res[id]||''):'';$('pkgEdit').dataset.k=id;$('sideTitle').textContent=TABS.find(t=>t.id===id).n;$('apprState').textContent=S.approved[id]?'معتمد ✓':'';renderTabs();renderFacts('factsMini');renderSrc();renderLog();
  try{await document.fonts.load("800 40px 'Alexandria'");await document.fonts.load("500 40px 'IBM Plex Sans Arabic'")}catch(e){}renderStage()}
 function renderStage(){const id=S.cur,st=$('stage'),t=S.res[id];
+ if(id!=='cmp'&&!(t||'').trim()){st.innerHTML=`<div style="text-align:center;padding:28px"><p style="margin-bottom:12px">تعذّر توليد هذه الصيغة، ولا يمكن اعتمادها.</p><button class="btn gold sm" onclick="retryOne('${id}')">أعد المحاولة لهذه الصيغة</button></div>`;return}
  if(id==='video')return initReel(st);
  if(id==='slides'){const sl=parseSlides(t);st.innerHTML=`<div style="width:100%"><div class="slides" id="slGrid"></div><div class="row" style="justify-content:center;margin-top:14px"><button class="btn gold sm" onclick="dlAll()">⬇ تحميل الصور PNG</button></div></div>`;
   sl.forEach((s,i)=>{const d=document.createElement('div');d.className='slideimg';const cv=document.createElement('canvas');d.appendChild(cv);drawSlide(cv,s,i,sl.length);const a=document.createElement('a');a.textContent='⬇ PNG';a.href='#';a.onclick=e=>{e.preventDefault();dl(cv,`nabda-slide-${i+1}.png`)};d.appendChild(a);$('slGrid').appendChild(d)});return}
@@ -401,20 +411,25 @@ async function playVoice(){const L=lines(S.res.voice);if(tts){try{tts.onLine&&tt
 function dl(cv,name){cv.toBlob(b=>saveFile(name,b),'image/png')}
 async function dlAll(){const cvs=[...document.querySelectorAll('#slGrid canvas')];for(let i=0;i<cvs.length;i++){const b=await new Promise(r=>cvs[i].toBlob(r,'image/png'));await saveFile(`nabda-slide-${i+1}.png`,b)}}
 function badge(){const b=document.getElementById('aiBadge');if(!b)return;const a=S.approved&&S.approved[S.cur];b.textContent=a?'● أُنتج بمساعدة الذكاء الاصطناعي · راجعه: '+a:'● مسودة مولّدة بالذكاء الاصطناعي · بانتظار المراجعة'}
-function setRes(id,v){if(id==='cmp'||v===undefined)return;if((S.res[id]||'')!==v){S.res[id]=v;if(S.approved[id]){delete S.approved[id];(S.log=S.log||[]).push({k:id,who:'—',at:new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}),voided:true});renderLog&&renderLog()}}}
+function setRes(id,v){if(id==='cmp'||v===undefined)return;if((S.res[id]||'')!==v){S.res[id]=v;if(S.approved[id]){const prev=S.approved[id];delete S.approved[id];(S.log=S.log||[]).push({k:id,who:prev,at:new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}),voided:true});renderLog&&renderLog()}}}
+document.addEventListener('DOMContentLoaded',()=>{const ed=document.getElementById('pkgEdit');if(ed)ed.addEventListener('input',()=>{const id=S.cur;if(!id||id==='cmp')return;const had=!!S.approved[id];setRes(id,ed.value);if(had){$('apprState').textContent='عُدّل المحتوى · يحتاج اعتمادًا جديدًا';renderTabs()}badge()})});
 function applyEdit(){if(S.cur==='cmp')return;setRes(S.cur,$('pkgEdit').value);$('apprState').textContent='';renderTabs();renderStage();badge()}
-function renderLog(){const L=S.log||[];$('logBox').innerHTML=L.length?L.slice().reverse().map(e=>`<div class="fact"><span class="n">✓</span><span>${esc(TABS.find(t=>t.id===e.k).n)} · اعتمده <b>${esc(e.who)}</b> · ${e.at}</span></div>`).join(''):'<span class="note">لم يُعتمد شيء بعد</span>'}
+function renderLog(){const L=S.log||[];$('logBox').innerHTML=L.length?L.slice().reverse().map(e=>{const n=esc(TABS.find(t=>t.id===e.k).n);return e.voided?`<div class="fact" style="opacity:.85;border-color:#8a4a4a"><span class="n" style="background:#8a4a4a;color:#fff">✕</span><span>${n} · <b>اعتماد ملغى بسبب تعديل المحتوى</b> (كان باسم ${esc(e.who)}) · ${e.at}</span></div>`:`<div class="fact"><span class="n">✓</span><span>${n} · اعتمده <b>${esc(e.who)}</b> · ${e.at}</span></div>`}).join(''):'<span class="note">لم يُعتمد شيء بعد</span>'}
 function approve(){if(S.cur==='cmp'){toast('هذه مقارنة للعرض فقط');return}if(!$('pkgEdit').value.trim()){toast('لا يمكن اعتماد مخرج فارغ. أعد توليده أولًا');return}applyEdit();const who=($('approver').value||'محرر الفريق').trim();S.approved[S.cur]=who;(S.log=S.log||[]).push({k:S.cur,who,at:new Date().toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'})});renderLog();$('apprState').textContent='معتمد ✓';renderTabs();badge();const n=APPR.find(t=>!S.approved[t.id]);if(n)setTimeout(()=>openTab(n.id),450);else toast('الحملة كلها معتمدة ✓')}
-async function redo(how){if(S.cur==='cmp')return;if(!hasAI()){toast('إعادة التوليد تحتاج اتصالًا بالذكاء الاصطناعي');return}const a=AGENTS.find(x=>x.id===S.cur);$('apprState').textContent='يعيد الكتابة…';
- try{const r=await ai(ctx($('src').value)+'\n\nالمهمة: '+a.ask+'\nالنسخة الحالية:\n'+$('pkgEdit').value+'\nأعد كتابتها لتكون '+how+' بنفس الصيغة.',{modelTier:'default',onText:({text:t})=>$('pkgEdit').value=t});setRes(S.cur,r.text.trim());$('pkgEdit').value=S.res[S.cur];$('apprState').textContent='نسخة جديدة · تحتاج مراجعة';renderTabs();renderStage();badge()}catch(e){$('apprState').textContent='تعذّر، حاول مرة أخرى'}}
+async function redo(how){if(S.cur==='cmp')return;if(!hasAI()){toast('إعادة التوليد تحتاج اتصالًا بالذكاء الاصطناعي');return}
+ const id=S.cur,a=AGENTS.find(x=>x.id===id),base=$('pkgEdit').value;$('apprState').textContent='يعيد الكتابة…';
+ try{const r=await ai(ctx($('src').value)+'\n\nالمهمة: '+a.ask+'\nالنسخة الحالية:\n'+base+'\nأعد كتابتها لتكون '+how+' بنفس الصيغة.',{modelTier:'default',onText:({text:t})=>{if(S.cur===id)$('pkgEdit').value=t}});
+  setRes(id,r.text.trim());renderTabs();summary();
+  if(S.cur===id){$('pkgEdit').value=S.res[id];$('apprState').textContent='نسخة جديدة · تحتاج مراجعة';renderStage();badge()}else toast('اكتملت إعادة كتابة «'+TABS.find(t=>t.id===id).n+'» وتحتاج مراجعة')}
+ catch(e){if(S.cur===id)$('apprState').textContent='تعذّر، حاول مرة أخرى'}}
 
 /* ---------- calendar ---------- */
 function toCal(){if($('pkgEdit').dataset.k&&S.cur!=='cmp')setRes(S.cur,$('pkgEdit').value);const weeks=S.mode==='scheduled'?(+$('weeks').value||5):1;const start=new Date($('startDate').value||Date.now());
- const days=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس'];const slot=[['🎬 ريل','video'],['🖼 كاروسيل','slides'],['❓ كويز','quiz'],['✍ X + لينكدإن','posts'],['🎙 مقطع صوتي','voice']];
+ const days=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس'];const slot=[['🎬 ريل','video'],['🖼 كاروسيل','slides'],['❓ كويز','quiz'],['✍ '+((S.platforms||[]).filter(p=>POST_SPEC[p]).join(' + ')||'منشورات'),'posts'],['🎙 مقطع صوتي','voice']];
  const titles=(S.plan?.parts||[]).map(p=>p.title),def=['مفهوم التناظر اللفظي','الجزء والكل والفئة','الضد والترادف والدرجة','السبب والنتيجة والوظيفة','اختبار تجريبي ومراجعة'];
  let h='<div class="h">الأسبوع</div>'+days.map(d=>`<div class="h">${d}</div>`).join('');
- for(let w=0;w<weeks;w++){h+=`<div class="wk">${w+1}. ${esc(titles[w]||def[w]||'الجزء '+(w+1))}</div>`;slot.forEach(([n,k])=>{h+=w===0?`<div class="item"><b>${n}</b><br><span class="note">${S.approved[k]?'معتمد ✓ · '+esc(S.approved[k]):'بانتظار الاعتماد'}</span></div>`:`<div class="later">${n}<br><span class="note">يُجهَّز قبل موعده</span></div>`})}
- $('cal').innerHTML=h;$('calLead').textContent=S.mode==='scheduled'?`${weeks} أسابيع تبدأ ${start.toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'long'})}. الأسبوع الأول جاهز، والباقي يُجهَّز تلقائيًا ويرجع لك للاعتماد.`:'حملة واحدة موزّعة على أسبوع.';
+ for(let w=0;w<weeks;w++){h+=`<div class="wk">${w+1}. ${esc(titles[w]||(isSampleSrc()?def[w]:'')||'الجزء '+(w+1))}</div>`;slot.forEach(([n,k])=>{h+=w===0?`<div class="item"><b>${n}</b><br><span class="note">${!(S.res[k]||'').trim()?'تعذّر التوليد':S.approved[k]?'معتمد ✓ · '+esc(S.approved[k]):'بانتظار الاعتماد'}</span></div>`:`<div class="later">${n}<br><span class="note">لم يُولَّد بعد</span></div>`})}
+ $('cal').innerHTML=h;$('calLead').textContent=S.mode==='scheduled'?`${weeks} أسابيع تبدأ ${start.toLocaleDateString('ar-SA-u-ca-gregory',{day:'numeric',month:'long'})}. خطة نشر مقترحة؛ تم تجهيز الأسبوع الأول، والأسابيع التالية لم تُولَّد بعد.`:'حملة واحدة موزّعة على أسبوع.';
  $('kTime').textContent=S.elapsed?S.elapsed.toFixed(0)+' ثانية':'—';$('kItems').textContent=APPR.length;$('kAppr').textContent=Object.keys(S.approved).length+' / '+APPR.length;show('cal')}
 
 /* ---------- Swarm Rebuild intro ---------- */

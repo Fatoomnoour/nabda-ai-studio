@@ -69,7 +69,7 @@ export function PulseHero() {
             <span>{isEn ? en.titleLine2 : "بلغة جمهورك وعلى كل منصة"}</span>
           </h1>
           <div className="pulse-hero__actions">
-            <a href="#start" className="pulse-btn pulse-btn--primary">
+            <a href="/studio" className="pulse-btn pulse-btn--primary">
               {isEn ? en.primaryCta : "جرّب نبضة"}
             </a>
             <a href="#how" className="pulse-btn pulse-btn--ghost">

@@ -16,9 +16,10 @@ test('/login is a demo entry with no fake authentication', () => {
   assert.doesNotMatch(page, /type="password"|<input|<form/);
   assert.match(page, /href="\/app"/);
 });
-test('landing primary CTA leads to /login', () => {
-  assert.match(text('src/components/landing/content.ts'), /plannedRoute: "\/login"/);
-  assert.match(text('src/components/landing/ConversionSection.tsx'), /href=\{CONVERSION\.plannedRoute\}/);
+test('every "try Nabda" CTA leads straight to the live studio', () => {
+  for (const f of ['ConversionSection', 'PulseHero', 'SiteNav', 'TeamPage'])
+    assert.match(text(`src/components/landing/${f}.tsx`), /href="\/studio"/);
+  assert.doesNotMatch(text('src/components/landing/PulseHero.tsx'), /href="#start"/);
 });
 test('future formats are labelled as vision, never as available', () => {
   const content = text('src/components/landing/content.ts');

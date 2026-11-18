@@ -56,9 +56,9 @@ export function TeamPage() {
           <div className="nabda-nav__prefs">
             <PreferencesControls variant="landing" compact />
           </div>
-          <Link href="/app" className="pulse-btn pulse-btn--primary nabda-nav__cta">
+          <a href="/studio" className="pulse-btn pulse-btn--primary nabda-nav__cta">
             {t.workspaceLink}
-          </Link>
+          </a>
         </div>
       </header>
 
@@ -110,10 +110,10 @@ export function TeamPage() {
             <div className="lp-team-cta">
               <h2>{t.ctaTitle}</h2>
               <div className="lp-cta__actions">
-                <Link href="/app" className="pulse-btn pulse-btn--primary pulse-btn--lg">
+                <a href="/studio" className="pulse-btn pulse-btn--primary pulse-btn--lg">
                   <span>{t.ctaPrimary}</span>
                   <ForwardArrow aria-hidden="true" />
-                </Link>
+                </a>
                 <Link href="/" className="pulse-btn pulse-btn--ghost pulse-btn--lg">
                   {t.ctaSecondary}
                 </Link>
@@ -144,7 +144,7 @@ export function TeamPage() {
                 <Link href="/team">{isEn ? LANDING_EN.teamLink : "الفريق"}</Link>
               </li>
               <li>
-                <Link href="/app">{t.workspaceLink}</Link>
+                <a href="/studio">{t.workspaceLink}</a>
               </li>
             </ul>
           </nav>
