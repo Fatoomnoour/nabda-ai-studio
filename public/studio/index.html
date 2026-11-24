@@ -243,7 +243,7 @@ let API=false,TTSAPI=false;
 (async()=>{try{const r=await fetch('/api/health',{cache:'no-store'});const j=r.ok?await r.json():{};API=!!j.ok;TTSAPI=!!j.tts}catch(e){}})();
 const hasAI=()=>!!(sample||API);
 async function ai(prompt,opts={}){if(sample)return sample(prompt,opts);if(!API)throw{code:'no_ai'};
- let r;for(let k=0;k<3;k++){r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt,tier:opts.modelTier||'default'})});if(r.ok||![429,500,502,503,504].includes(r.status))break;await new Promise(res=>setTimeout(res,1500*(k+1)+Math.random()*800))}
+ let r;for(let k=0;k<4;k++){r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({prompt,tier:opts.modelTier||'default'})});if(r.ok||![429,500,502,503,504].includes(r.status))break;await new Promise(res=>setTimeout(res,1500*(k+1)+Math.random()*800))}
  if(!r.ok){let m='';try{m=(await r.json()).error}catch(e){}throw{code:r.status===429?'rate_limited':'api',message:m}}
  const rd=r.body.getReader(),dec=new TextDecoder();let acc='';for(;;){const {done,value}=await rd.read();if(done)break;acc+=dec.decode(value,{stream:true});opts.onText&&opts.onText({text:acc})}return{text:acc}}
 ai.json=async(prompt,opts={})=>{if(sample)return sample.json(prompt,opts);const r=await ai(prompt+'\nأعد JSON صالحًا فقط بدون أي نص قبله أو بعده.',opts);const m=r.text.match(/\{[\s\S]*\}/);return JSON.parse(m?m[0]:r.text)};
@@ -301,11 +301,12 @@ async function runSwarm(){
  S.demo=!hasAI();$('demoNote').style.display=S.demo?'block':'none';if(S.demo)return runDemo();
  const jobs=[];
  if(S.mode==='scheduled')jobs.push(ai.json(`قسّم المنهج إلى ${$('weeks').value} أجزاء أسبوعية. أعد JSON فقط: {"parts":[{"week":1,"title":"عنوان قصير","text":"نص الجزء كما ورد"}]}. لا تخترع محتوى.\n\n${text}`,{modelTier:'quick'}).then(r=>S.plan=r).catch(()=>{}));
- jobs.push(ai.json(`استخرج من المصدر التالي من 4 إلى 6 حقائق أساسية يمكن بناء محتوى عليها. لكل حقيقة: صياغة قصيرة، واقتباس حرفي مطابق تمامًا لجزء من المصدر. أعد JSON فقط: {"facts":[{"fact":"...","quote":"نص منسوخ حرفيًا من المصدر"}]}.\n\nالمصدر:\n"""${text}"""`,{modelTier:'default'}).then(r=>S.facts=(r?.facts||[]).slice(0,6)).catch(()=>{}));
+ jobs.push(ai.json(`استخرج من المصدر التالي من 4 إلى 6 حقائق أساسية يمكن بناء محتوى عليها. إذا نصّ المصدر على أنه مثال أو تجريبي أو غير حقيقي فاجعل إحدى الحقائق تنص على ذلك. لكل حقيقة: صياغة قصيرة، واقتباس حرفي مطابق تمامًا لجزء من المصدر. أعد JSON فقط: {"facts":[{"fact":"...","quote":"نص منسوخ حرفيًا من المصدر"}]}.\n\nالمصدر:\n"""${text}"""`,{modelTier:'default'}).then(r=>S.facts=(r?.facts||[]).slice(0,6)).catch(()=>{}));
  await Promise.all(jobs);
  const parts=S.plan?.parts||[];if(parts.length){$('planBox').innerHTML='<div class="note" style="margin-bottom:6px">خطة المنهج</div>'+parts.map((x,i)=>`<div class="fact" style="${i?'':'border-color:var(--gold)'}"><span class="n" style="background:${i?'var(--p2)':'var(--gold)'};color:${i?'var(--mu)':'var(--g)'}">${esc(String(Math.min(52,Math.max(1,parseInt(x.week,10)||i+1))))}</span><span>${esc(x.title)}${i?'':' · يعمل الآن'}</span></div>`).join('');text=parts[0].text||text}
  renderFacts('factsList');pipe(2);
  S.runText=text;await Promise.all([...AGENTS.map(a=>runAgent(a,text)),ai(`اكتب منشور تويتر عن النص التالي:\n${text}`,{modelTier:'default'}).then(r=>S.generic=r.text).catch(()=>S.generic=isSampleSrc()?DEMO.generic:'')]);
+ {const bad=AGENTS.filter(a=>!(S.res[a.id]||'').trim());if(bad.length){await sleep(2500);AGENTS[1].ask=postsAsk();await Promise.all(bad.map(a=>runAgent(a,text)))}}
  pipe(3);await runChecker(text);pipe(5);stopTimer();summary()}
 async function runAgent(a,text){setSt(a.id,'run','يكتب…');
  try{const r=await ai(ctx(text)+'\n\nالمهمة: '+a.ask,{modelTier:'default',onText:({text:t})=>$('out-'+a.id).textContent=t});S.res[a.id]=normAr(r.text.trim());$('out-'+a.id).textContent=S.res[a.id];setSt(a.id,'ok','جاهز ✓')}

@@ -258,7 +258,7 @@ export const LANDING_EN = {
       },
       {
         q: "Where is my data stored?",
-        a: "In your browser only (localStorage). There are no accounts or cloud saves yet; clearing browser storage deletes local drafts.",
+        a: "Approvals and drafts stay in your browser only (localStorage); clearing browser storage deletes them. In the Live Studio, your text is sent to the model provider to generate content and is not stored on Nabda servers. Do not upload confidential content.",
       },
       {
         q: "Is any script approved automatically?",
