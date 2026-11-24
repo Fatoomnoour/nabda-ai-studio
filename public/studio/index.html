@@ -163,7 +163,7 @@ mark{background:rgba(63,209,168,.18);color:var(--tx);border-radius:4px;padding:0
         <div class="row between"><h3 style="font-size:16px">١ · المصدر</h3><button class="btn dark sm" onclick="loadSample()">✦ مثال: دورة القدرات</button></div>
         <div class="srcs" style="margin-top:12px"><button class="src on">نص</button><label class="src">ملف .txt<input type="file" accept=".txt,.md" hidden onchange="readFile(this)"></label><span class="src" title="عن طريق إضافة كروم">رابط خبر (من الإضافة)</span></div>
         <textarea id="src" placeholder="الصق نص الدرس أو الخبر هنا…"></textarea>
-        <p class="note" style="margin:8px 0 0">🔒 النص يُرسل إلى مزوّد النموذج لتوليد المحتوى، ولا نحفظه في قاعدة بيانات نبضة. راجع سياسة المزوّد قبل رفع محتوى سري.</p>
+        <p class="note" style="margin:8px 0 0">🔒 النص يُرسل إلى مزوّد النموذج لتوليد المحتوى، ولا نحفظه على خوادم نبضة. الاعتمادات تبقى في متصفحك فقط. راجع سياسة المزوّد قبل رفع محتوى سري.</p>
         <div id="schedBox" class="grid2" style="display:none"><div><label class="f">عدد الأسابيع</label><input type="number" id="weeks" value="5" min="1" max="12"></div><div><label class="f">تاريخ البداية</label><input type="date" id="startDate"></div></div>
       </div>
       <div class="card">
@@ -273,10 +273,10 @@ const AGENTS=[
  {id:'posts',icon:'✍',name:'وكيل المنشورات',ask:'اكتب ثلاثة أجزاء بهذه العناوين بالضبط: [X] منشور لا يتجاوز 240 حرفًا مع وسمين. [إنستغرام] كابشن قصير. [لينكدإن] منشور مهني قصير بالفصحى.'},
  {id:'slides',icon:'🖼',name:'وكيل الصور',ask:'اكتب 5 شرائح كاروسيل إنستغرام. كل شريحة في سطر واحد بالشكل: العنوان | السطر الشارح. العنوان 4 كلمات كحد أقصى، والشارح 12 كلمة كحد أقصى. الأولى خطّاف والأخيرة دعوة للحفظ والمشاركة. بدون ترقيم.'},
  {id:'quiz',icon:'❓',name:'وكيل الكويز',ask:'اكتب 3 أسئلة اختيار من متعدد مبنية على المصدر فقط. لكل سؤال 5 أسطر بالضبط: السؤال، ثم 4 خيارات. ضع علامة * في بداية الخيار الصحيح. افصل بين الأسئلة بسطر فارغ. بدون حروف أو أرقام قبل الخيارات.'},
- {id:'voice',icon:'🎙',name:'وكيل الصوت',ask:'اكتب نص تعليق صوتي لنحو 30 ثانية: 6 جمل قصيرة سهلة النطق، كل جملة في سطر، بدون رموز أو وسوم أو إيموجي.'}];
+ {id:'voice',icon:'🎙',name:'وكيل الصوت',ask:'اكتب نص تعليق صوتي لنحو 30 ثانية: 6 جمل قصيرة سهلة النطق، كل جملة في سطر، بدون رموز أو وسوم أو إيموجي. اكتب الأعمار والأعداد كما في المصدر بالضبط (مثل «من 9 إلى 12 سنة»)، واستخدم أفعالًا سليمة (يتعلّم لا يعلّم)، وإن كان المصدر مثالًا تجريبيًا فاذكر ذلك في جملة.'}];
 function ctx(text){const f=S.facts.length?'\nالحقائق المعتمدة من المصدر (لا تستخدم غيرها):\n'+S.facts.map((x,i)=>`${i+1}. ${x.fact}`).join('\n'):'';
  return `أنت كاتب محتوى سعودي محترف في فريق "نبضة". الجمهور: ${$('audience').value.trim()||'الجمهور السعودي العام على المنصات'}. لا تفترض جمهورًا أو موضوعًا غير المذكور في المصدر. لهجة السوشيال: ${S.dialect}، والنبرة: ${S.tone}. المنصات: ${S.platforms.join('، ')}.
-قواعد: لا تضف أي معلومة غير موجودة في المصدر. إذا ذكر نص المصدر نفسه اسم جهة أو وسيلة إعلامية (وزارة، هيئة، صحيفة) فاكتب في آخر المنشور (المصدر: اسم الجهة كما ورد). إذا لم يذكر المصدر جهة فلا تكتب سطر المصدر إطلاقًا، ولا تنسبه لنبضة. لا مبالغة ولا وعود. اللهجة طبيعية غير متكلّفة. أخرج المطلوب فقط بدون مقدمة.${f}
+قواعد: لا تضف أي معلومة غير موجودة في المصدر. إذا ذكر نص المصدر نفسه اسم جهة أو وسيلة إعلامية (وزارة، هيئة، صحيفة) فاكتب في آخر المنشور (المصدر: اسم الجهة كما ورد). إذا لم يذكر المصدر جهة فلا تكتب سطر المصدر إطلاقًا، ولا تنسبه لنبضة. لا مبالغة ولا وعود. اللهجة طبيعية غير متكلّفة. الأعمار والأعداد والتواريخ والأوقات والأسعار تُنقل كما وردت في المصدر بالضبط، ولا تُغيَّر ولا تُحوَّل ولا يُذكر الرقم بصيغتين مختلفتين (مثال: «من 9 إلى 12 سنة» تبقى كما هي، و«20 مشاركًا» لا تصبح «مشاركين فقط»). لا تضف كلمات زمنية نسبية مثل «القادم» أو «اليوم» أو «غدًا» ما لم تكن في المصدر. إذا نصّ المصدر على أنه مثال أو تجريبي أو غير حقيقي فأبقِ هذا التنبيه ظاهرًا في كل مخرج بجملة قصيرة (مثال: «هذا مثال تجريبي وليس فعالية حقيقية»). اكتب بالحروف العربية القياسية فقط (ك ي ه ة) ولا تستخدم الحروف الفارسية أو الأردية (ک ی ھ ۃ). أخرج المطلوب فقط بدون مقدمة.${f}
 
 المصدر:
 """${text}"""`}
@@ -308,8 +308,11 @@ async function runSwarm(){
  S.runText=text;await Promise.all([...AGENTS.map(a=>runAgent(a,text)),ai(`اكتب منشور تويتر عن النص التالي:\n${text}`,{modelTier:'default'}).then(r=>S.generic=r.text).catch(()=>S.generic=isSampleSrc()?DEMO.generic:'')]);
  pipe(3);await runChecker(text);pipe(5);stopTimer();summary()}
 async function runAgent(a,text){setSt(a.id,'run','يكتب…');
- try{const r=await ai(ctx(text)+'\n\nالمهمة: '+a.ask,{modelTier:'default',onText:({text:t})=>$('out-'+a.id).textContent=t});S.res[a.id]=r.text.trim();$('out-'+a.id).textContent=S.res[a.id];setSt(a.id,'ok','جاهز ✓')}
+ try{const r=await ai(ctx(text)+'\n\nالمهمة: '+a.ask,{modelTier:'default',onText:({text:t})=>$('out-'+a.id).textContent=t});S.res[a.id]=normAr(r.text.trim());$('out-'+a.id).textContent=S.res[a.id];setSt(a.id,'ok','جاهز ✓')}
  catch(e){if(isSampleSrc()){S.res[a.id]=DEMO[a.id];$('out-'+a.id).textContent=DEMO[a.id];setSt(a.id,'err','نسخة محفوظة')}else{S.res[a.id]='';$('out-'+a.id).textContent='تعذّر توليد هذه الصيغة الآن (ضغط على الخادم). أعد تشغيل الحملة بعد لحظات.';setSt(a.id,'err','تعذّر')}}}
+function normAr(t){return String(t).replace(/ک/g,'ك').replace(/[یي]/g,'ي').replace(/ھ/g,'ه').replace(/ۃ/g,'ة')}
+function digits(t){return String(t).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d))}
+function numCheck(src){const known=new Set((digits(src).match(/\d+/g)||[]));const bad=[];AGENTS.forEach(a=>{const t=S.res[a.id];if(!t)return;const odd=[...new Set((digits(t).match(/\d+/g)||[]).filter(n=>!known.has(n)))];if(odd.length)bad.push(a.name.replace('وكيل ','')+': '+odd.join('، '))});return bad.length?'\n⚠ أرقام لم ترد في المصدر (راجعها قبل الاعتماد) — '+bad.join(' · '):''}
 function okIds(){return AGENTS.filter(a=>(S.res[a.id]||'').trim()).map(a=>a.id)}
 function summary(){const ok=okIds().length,n=AGENTS.length,bad=AGENTS.filter(a=>!(S.res[a.id]||'').trim());const el=$('okSummary');
  S.ready=ok>0;$('toStudio').disabled=ok===0;$('retryFailed').style.display=bad.length?'inline-flex':'none';
@@ -320,7 +323,7 @@ async function retryFailed(){const bad=AGENTS.filter(a=>!(S.res[a.id]||'').trim(
 function isSampleSrc(){return $('src').value.replace(/\s+/g,'')===SAMPLE.replace(/\s+/g,'')}
 async function runChecker(text){$('checker').style.display='block';$('checkOut').textContent='يراجع اللهجة والحقائق…';
  try{const all=AGENTS.filter(a=>S.res[a.id]).map(a=>`[${a.name}]\n${S.res[a.id]}`).join('\n\n');
-  const r=await ai(`أنت مدقّق لغوي سعودي ومدقّق حقائق. لكل مخرج اكتب سطرًا: اسمه ثم ✓ إن كانت اللهجة طبيعية وكل معلومة موجودة في المصدر، أو ⚠ مع الملاحظة. ثم سطر "الخلاصة".\nالمصدر:\n"""${text}"""\n\nالمخرجات:\n${all}`,{modelTier:'default',onText:({text:t})=>$('checkOut').textContent=t});$('checkOut').textContent=r.text}
+  const r=await ai(`أنت مدقّق لغوي سعودي ومدقّق حقائق. لكل مخرج اكتب سطرًا: اسمه ثم ✓ إن كانت اللهجة طبيعية وكل معلومة موجودة في المصدر، أو ⚠ مع الملاحظة. افحص بالتحديد: (1) تطابق كل رقم وعمر وتاريخ ووقت مع المصدر حرفيًا، (2) عدم وجود تناقض في الأعداد داخل المخرج، (3) عدم إضافة كلمات زمنية ليست في المصدر، (4) بقاء تنبيه «مثال/تجريبي» إن وُجد في المصدر، (5) أخطاء الإملاء والحروف غير العربية. ثم سطر "الخلاصة".\nالمصدر:\n"""${text}"""\n\nالمخرجات:\n${all}`,{modelTier:'default',onText:({text:t})=>$('checkOut').textContent=t});$('checkOut').textContent=r.text+numCheck(text)}
  catch(e){$('checkOut').textContent=isSampleSrc()?DEMO.check:'تعذّر تشغيل المدقّق الآن. راجع المخرجات يدويًا أو أعد التشغيل.'}}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function runDemo(){
