@@ -85,7 +85,7 @@ export const LANDING_EN = {
     tabsAria: "Workflow stages",
     roleLabel: "Your role",
     todayLabel: "In today's demo",
-    laterLabel: "After backend integration",
+    laterLabel: "Later",
     statusLabel: {
       available: "Available in demo",
       partial: "Partially available",

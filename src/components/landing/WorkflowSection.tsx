@@ -86,7 +86,7 @@ export function WorkflowSection() {
                   <dd>{s.today}</dd>
                 </div>
                 <div className="lp-stage__later">
-                  <dt>{isEn ? en.laterLabel : "بعد ربط الخادم"}</dt>
+                  <dt>{isEn ? en.laterLabel : "لاحقًا"}</dt>
                   <dd>{s.later}</dd>
                 </div>
               </dl>
