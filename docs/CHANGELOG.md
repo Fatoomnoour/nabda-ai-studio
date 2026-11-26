@@ -1,5 +1,14 @@
 # NABDA AI — Change Log
 
+## Unreleased — Claude fallback + visible trial usage meter (2026-11-27)
+
+Requested by the Project Lead (Fatma), branch `feat/claude-fallback-usage-meter`. Not committed or pushed yet (waiting for approval).
+
+- **Claude fallback (`src/lib/server/ai-provider.ts`):** when the whole Gemini chain fails (timeout, 429, 5xx) and `ANTHROPIC_API_KEY` is set, the request is retried once on Claude (`claude-sonnet-5-5` / `claude-haiku-5-5` for quick tier). Capped by `CLAUDE_FALLBACK_DAILY_MAX` (default 16 calls/day per instance; `0` disables). Response header `x-nabda-provider` says which provider answered. Without `ANTHROPIC_API_KEY` nothing changes. The real spend cap must be set in the Anthropic Console.
+- **Visible usage limit:** `/api/generate` now returns `x-nabda-remaining` / `x-nabda-limit`; new read-only `GET /api/usage`. The studio shows "متبقي لك اليوم: N حملات تقريبًا" (campaign ≈ 8 calls) and stops retrying when the daily limit is hit, with a clear Arabic message. `/api/health` reports `fallback`.
+- **Verification (local):** `typecheck` PASS · `lint` PASS · `build` PASS · `test:contracts` 23/23 PASS · smoke test with `DAILY_LIMIT_PER_IP=3`: headers count down 2→1→0 then 429 + `x-nabda-limit-reached`; `/api/usage` matches. **Claude fallback not tested against the real Anthropic API** (no key in this session).
+- **Known limit:** the counters are in-memory per serverless instance (best effort), not a hard global cap.
+
 ## Unreleased — Live Studio + Server AI Routes (Gemini first, Claude fallback) (2026-11-18)
 
 Requested by the Project Lead (Fatma) on branch `feat/live-studio-gemini`. Frozen contracts, fixtures, tests and brand assets untouched.

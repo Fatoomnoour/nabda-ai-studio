@@ -23,14 +23,58 @@ export function ttsAvailable(): boolean {
 }
 
 // Best-effort per-IP daily limit (per serverless instance). Protects the demo budget.
+// A campaign = ~8 model calls, so the visible "campaigns left" is remaining / REQUESTS_PER_CAMPAIGN.
+export const REQUESTS_PER_CAMPAIGN = 8;
 const hits = new Map<string, number>();
-export function overLimit(req: Request, bucket: string): boolean {
-  const limit = Number(process.env.DAILY_LIMIT_PER_IP || 80);
+
+function usageKey(req: Request, bucket: string): string {
   const ip = (req.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
-  const key = `${bucket}:${ip}:${new Date().toISOString().slice(0, 10)}`;
+  return `${bucket}:${ip}:${new Date().toISOString().slice(0, 10)}`;
+}
+function dailyLimit(): number {
+  const n = Number(process.env.DAILY_LIMIT_PER_IP || 80);
+  return Number.isFinite(n) && n > 0 ? n : 80;
+}
+export type Usage = { used: number; limit: number; remaining: number; campaignsLeft: number };
+function toUsage(used: number): Usage {
+  const limit = dailyLimit();
+  const remaining = Math.max(0, limit - used);
+  return { used: Math.min(used, limit), limit, remaining, campaignsLeft: Math.floor(remaining / REQUESTS_PER_CAMPAIGN) };
+}
+/** Read the caller's usage without counting a request. */
+export function peekUsage(req: Request, bucket = "gen"): Usage {
+  return toUsage(hits.get(usageKey(req, bucket)) || 0);
+}
+/** Count one request. `over` is true once the daily limit is exceeded (the request must be refused). */
+export function consumeUsage(req: Request, bucket: string): { over: boolean; usage: Usage } {
+  const key = usageKey(req, bucket);
   const n = (hits.get(key) || 0) + 1;
   hits.set(key, n);
-  return n > limit;
+  return { over: n > dailyLimit(), usage: toUsage(n) };
+}
+export function overLimit(req: Request, bucket: string): boolean {
+  return consumeUsage(req, bucket).over;
+}
+
+// Claude is only a fallback when Gemini fails. Hard cap on fallback calls per day per instance
+// (CLAUDE_FALLBACK_DAILY_MAX, default 16; 0 disables). Real spend cap: set a monthly limit in the Anthropic Console.
+let fallbackDay = "";
+let fallbackCount = 0;
+function claudeFallbackAllowed(): boolean {
+  if (!process.env.ANTHROPIC_API_KEY) return false;
+  const max = Number(process.env.CLAUDE_FALLBACK_DAILY_MAX ?? 16);
+  if (!(max > 0)) return false;
+  const today = new Date().toISOString().slice(0, 10);
+  if (fallbackDay !== today) {
+    fallbackDay = today;
+    fallbackCount = 0;
+  }
+  if (fallbackCount >= max) return false;
+  fallbackCount++;
+  return true;
+}
+export function fallbackEnabled(): boolean {
+  return Boolean(process.env.ANTHROPIC_API_KEY) && Number(process.env.CLAUDE_FALLBACK_DAILY_MAX ?? 16) > 0;
 }
 
 /** Reads an SSE stream and forwards only the text deltas picked by `pick`. */
@@ -96,48 +140,57 @@ export async function streamText(prompt: string, tier: Tier): Promise<Response> 
         };
         const text = (data.candidates?.[0]?.content?.parts || []).filter(p => !p.thought).map(p => p.text || "").join("");
         return new Response(text, {
-          headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-nabda-model": model },
+          headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store", "x-nabda-model": model, "x-nabda-provider": "gemini" },
         });
       }
       last = upstream;
       if (upstream.status !== 404 && upstream.status !== 400) break;
     }
+    if (claudeFallbackAllowed()) {
+      console.warn("GEMINI_FAILED_FALLBACK_TO_CLAUDE", last?.status);
+      return anthropicStream(prompt, tier, "claude-fallback");
+    }
     return last && last.headers.get("content-type")?.includes("json") && last.status === 504 ? last : upstreamError(last!);
   }
-  if (provider === "anthropic") {
-    const model =
-      tier === "quick"
-        ? process.env.ANTHROPIC_MODEL_QUICK || "claude-haiku-5-5"
-        : process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
-    const upstream = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": process.env.ANTHROPIC_API_KEY!,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 1500,
-        stream: true,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-    if (!upstream.ok) return upstreamError(upstream);
-    return textResponse(
-      sseToText(upstream, ev => {
-        const e = ev as { type?: string; delta?: { text?: string } };
-        return e.type === "content_block_delta" ? e.delta?.text : undefined;
-      }),
-    );
-  }
+  if (provider === "anthropic") return anthropicStream(prompt, tier, "anthropic");
   return Response.json({ error: "INTEGRATION_NOT_CONFIGURED" }, { status: 503 });
 }
 
-function textResponse(body: ReadableStream<Uint8Array>, model?: string): Response {
+async function anthropicStream(prompt: string, tier: Tier, label: string): Promise<Response> {
+  const model =
+    tier === "quick"
+      ? process.env.ANTHROPIC_MODEL_QUICK || "claude-haiku-5-5"
+      : process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5";
+  const upstream = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": process.env.ANTHROPIC_API_KEY!,
+      "anthropic-version": "2023-06-01",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1500,
+      stream: true,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+  if (!upstream.ok) return upstreamError(upstream);
+  return textResponse(
+    sseToText(upstream, ev => {
+      const e = ev as { type?: string; delta?: { text?: string } };
+      return e.type === "content_block_delta" ? e.delta?.text : undefined;
+    }),
+    model,
+    label,
+  );
+}
+
+function textResponse(body: ReadableStream<Uint8Array>, model?: string, provider?: string): Response {
   const headers: Record<string, string> = { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" };
   if (model) headers["x-nabda-model"] = model;
+  if (provider) headers["x-nabda-provider"] = provider;
   return new Response(body, { headers });
 }
 
