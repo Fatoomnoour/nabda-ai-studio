@@ -22,19 +22,66 @@ export function ttsAvailable(): boolean {
   return Boolean(process.env.GEMINI_API_KEY) && process.env.NABDA_TTS !== "off";
 }
 
-// Best-effort per-IP daily limit (per serverless instance). Protects the demo budget.
+// Per-IP daily limit. Shared across serverless instances through Upstash Redis (REST) when
+// KV_REST_API_URL + KV_REST_API_TOKEN are set (Vercel Marketplace integration); otherwise
+// (or if Redis is unreachable) it falls back to a best-effort in-memory counter per instance.
 // A campaign = ~8 model calls, so the visible "campaigns left" is remaining / REQUESTS_PER_CAMPAIGN.
 export const REQUESTS_PER_CAMPAIGN = 8;
+const DAY_SECONDS = 86400;
 const hits = new Map<string, number>();
 
-function usageKey(req: Request, bucket: string): string {
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+async function usageKey(req: Request, bucket: string): Promise<string> {
   const ip = (req.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
-  return `${bucket}:${ip}:${new Date().toISOString().slice(0, 10)}`;
+  // Store a hash, not the raw IP.
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`nabda:${ip}`));
+  const id = Array.from(new Uint8Array(digest).slice(0, 8), b => b.toString(16).padStart(2, "0")).join("");
+  return `nabda:${bucket}:${id}:${today()}`;
 }
 function dailyLimit(): number {
   const n = Number(process.env.DAILY_LIMIT_PER_IP || 80);
   return Number.isFinite(n) && n > 0 ? n : 80;
 }
+
+async function redis(commands: (string | number)[][]): Promise<unknown[] | null> {
+  const url = process.env.KV_REST_API_URL;
+  const token = process.env.KV_REST_API_TOKEN;
+  if (!url || !token) return null;
+  try {
+    const res = await fetch(`${url}/pipeline`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify(commands),
+      signal: AbortSignal.timeout(1500),
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const out = (await res.json()) as { result?: unknown; error?: string }[];
+    if (out.some(r => r.error)) return null;
+    return out.map(r => r.result);
+  } catch {
+    return null;
+  }
+}
+export function sharedCounterEnabled(): boolean {
+  return Boolean(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+}
+
+async function incr(key: string): Promise<number> {
+  const r = await redis([["INCR", key], ["EXPIRE", key, DAY_SECONDS, "NX"]]);
+  if (r && typeof r[0] === "number") return r[0];
+  const n = (hits.get(key) || 0) + 1;
+  hits.set(key, n);
+  return n;
+}
+async function read(key: string): Promise<number> {
+  const r = await redis([["GET", key]]);
+  if (r) return Number(r[0] || 0);
+  return hits.get(key) || 0;
+}
+
 export type Usage = { used: number; limit: number; remaining: number; campaignsLeft: number };
 function toUsage(used: number): Usage {
   const limit = dailyLimit();
@@ -42,39 +89,30 @@ function toUsage(used: number): Usage {
   return { used: Math.min(used, limit), limit, remaining, campaignsLeft: Math.floor(remaining / REQUESTS_PER_CAMPAIGN) };
 }
 /** Read the caller's usage without counting a request. */
-export function peekUsage(req: Request, bucket = "gen"): Usage {
-  return toUsage(hits.get(usageKey(req, bucket)) || 0);
+export async function peekUsage(req: Request, bucket = "gen"): Promise<Usage> {
+  return toUsage(await read(await usageKey(req, bucket)));
 }
 /** Count one request. `over` is true once the daily limit is exceeded (the request must be refused). */
-export function consumeUsage(req: Request, bucket: string): { over: boolean; usage: Usage } {
-  const key = usageKey(req, bucket);
-  const n = (hits.get(key) || 0) + 1;
-  hits.set(key, n);
+export async function consumeUsage(req: Request, bucket: string): Promise<{ over: boolean; usage: Usage }> {
+  const n = await incr(await usageKey(req, bucket));
   return { over: n > dailyLimit(), usage: toUsage(n) };
 }
-export function overLimit(req: Request, bucket: string): boolean {
-  return consumeUsage(req, bucket).over;
-}
 
-// Claude is only a fallback when Gemini fails. Hard cap on fallback calls per day per instance
-// (CLAUDE_FALLBACK_DAILY_MAX, default 16; 0 disables). Real spend cap: set a monthly limit in the Anthropic Console.
-let fallbackDay = "";
-let fallbackCount = 0;
-function claudeFallbackAllowed(): boolean {
+// Claude is only a fallback when Gemini fails. Hard cap on fallback calls per day
+// (CLAUDE_FALLBACK_DAILY_MAX, default 16; 0 disables), global and shared through Redis.
+// Real spend cap: set a monthly limit in the Anthropic Console.
+function fallbackMax(): number {
+  const n = Number(process.env.CLAUDE_FALLBACK_DAILY_MAX ?? 16);
+  return Number.isFinite(n) ? n : 16;
+}
+async function claudeFallbackAllowed(): Promise<boolean> {
   if (!process.env.ANTHROPIC_API_KEY) return false;
-  const max = Number(process.env.CLAUDE_FALLBACK_DAILY_MAX ?? 16);
+  const max = fallbackMax();
   if (!(max > 0)) return false;
-  const today = new Date().toISOString().slice(0, 10);
-  if (fallbackDay !== today) {
-    fallbackDay = today;
-    fallbackCount = 0;
-  }
-  if (fallbackCount >= max) return false;
-  fallbackCount++;
-  return true;
+  return (await incr(`nabda:claude-fallback:${today()}`)) <= max;
 }
 export function fallbackEnabled(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY) && Number(process.env.CLAUDE_FALLBACK_DAILY_MAX ?? 16) > 0;
+  return Boolean(process.env.ANTHROPIC_API_KEY) && fallbackMax() > 0;
 }
 
 /** Reads an SSE stream and forwards only the text deltas picked by `pick`. */
@@ -146,7 +184,7 @@ export async function streamText(prompt: string, tier: Tier): Promise<Response> 
       last = upstream;
       if (upstream.status !== 404 && upstream.status !== 400) break;
     }
-    if (claudeFallbackAllowed()) {
+    if (await claudeFallbackAllowed()) {
       console.warn("GEMINI_FAILED_FALLBACK_TO_CLAUDE", last?.status);
       return anthropicStream(prompt, tier, "claude-fallback");
     }

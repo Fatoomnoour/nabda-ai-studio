@@ -12,7 +12,7 @@ function withUsage(res: Response, usage: Usage): Response {
 }
 
 export async function POST(request: Request) {
-  const { over, usage } = consumeUsage(request, "gen");
+  const { over, usage } = await consumeUsage(request, "gen");
   if (over) {
     return withUsage(
       Response.json(

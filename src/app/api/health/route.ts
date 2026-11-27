@@ -1,4 +1,4 @@
-import { activeProvider, fallbackEnabled, streamText, ttsAvailable } from "@/lib/server/ai-provider";
+import { activeProvider, fallbackEnabled, sharedCounterEnabled, streamText, ttsAvailable } from "@/lib/server/ai-provider";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -20,7 +20,7 @@ function safeEqual(a: string, b: string) {
 
 export async function GET(request: Request) {
   const provider = activeProvider();
-  const body: Record<string, unknown> = { ok: provider !== null, provider, tts: ttsAvailable(), fallback: provider === "gemini" && fallbackEnabled() };
+  const body: Record<string, unknown> = { ok: provider !== null, provider, tts: ttsAvailable(), fallback: provider === "gemini" && fallbackEnabled(), sharedCounter: sharedCounterEnabled() };
   // ?probe=1 with header "Authorization: Bearer <HEALTH_PROBE_TOKEN>" → one tiny billable generation (max 5/hour per instance). Public calls only report config. live generation to report which model answered and how fast.
   const probeToken = process.env.HEALTH_PROBE_TOKEN;
   const wantsProbe = new URL(request.url).searchParams.get("probe") === "1";
